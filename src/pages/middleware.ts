@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 // Define which paths require authentication
 export const config = {
-  matcher: ['/api/dashboard/:path*'],
+  matcher: ['/api/dashboard/:path*', '/api/user/:path*'],
 };
 
 export async function middleware(req: NextRequest) {
