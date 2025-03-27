@@ -24,7 +24,7 @@ html,body{
   height: 100%;
   margin: 0;
 }
-body::before{
+.home::before{
   content:"";
   position: absolute;
   top: 0;
