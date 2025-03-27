@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  role         Role     @default(STUDENT) 
+  isVerified   Boolean  @default(false)
+  emailToken   String?  @unique
+  tokenExpires DateTime?
+  resetToken        String?  @unique
+  resetTokenExpires DateTime?
+
+ // Relation: A user (student) can make many submissions
+  submissions Submission[]
+
+  @@index([email])
+  @@index([username])
+}
+
+
+model Unit {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique 
+  name        String   
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation: A unit can have many assignments
+  assignments Assignment[]
+}
+
+
+model Assignment {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  dueDate     DateTime? 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  unit   Unit @relation(fields: [unitId], references: [id])
+  unitId Int
+
+  // Relation: An assignment can have many submissions
+  submissions Submission[]
+
+  @@index([unitId]) 
+}
+
+
+model Submission {
+  id        Int      @id @default(autoincrement())
+  submittedAt DateTime @default(now())
+  filePath  String
+  fileName  String
+  fileType  String?
+  //grade     String?
+  feedback  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation: Each submission is made by exactly one user (student)
+  student   User @relation(fields: [studentId], references: [id])
+  studentId String 
+
+  // Relation: Each submission is for exactly one assignment
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  assignmentId Int
+
+  @@index([studentId])
+  @@index([assignmentId])
+}
