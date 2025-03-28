@@ -1,17 +1,15 @@
 "use client";
-import React, { useState,useEffect } from "react";
+import React, { useState } from "react";
 import Modal from "../modal/Modal";
 
-function CreateAssignment({ isOpen, onClose, token }) {
+function CreateUnit({ isOpen, onClose, token }) {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    dueDate: "",
     unitId: "",
+    code: "",
+    name: "",
+    description: "",
   });
 
-  
-  
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -25,14 +23,14 @@ function CreateAssignment({ isOpen, onClose, token }) {
 
     // Prepare the request body
     const requestBody = {
-      title: formData.title,
-      description: formData.description,
       unitId: formData.unitId,
-      dueDate: formData.dueDate,
+      code: formData.code,
+      name: formData.name,
+      description: formData.description,
     };
 
     try {
-      const response = await fetch("/api/dashboard/assignments", {
+      const response = await fetch("/api/dashboard/units/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,39 +41,36 @@ function CreateAssignment({ isOpen, onClose, token }) {
 
       if (response.ok) {
         const data = await response.json();
-        setSuccess("Assignment created successfully!");
+        setSuccess("Unit created successfully!");
         setError(null);
-        console.log("Assignment created successfully:", data);
+        console.log("Unit created successfully:", data);
         setFormData({
-          title: "",
-          description: "",
-          dueDate: "",
           unitId: "",
+          code: "",
+          name: "",
+          description: "",
         });
-        
 
         setTimeout(() => {
-          onClose(); 
+          onClose();
           setSuccess(null);
-        }, 1200); 
+        }, 1200);
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Failed to create assignment.");
+        setError(errorData.message || "Failed to create unit.");
         setSuccess(null);
-        console.error("Failed to create assignment:", errorData);
+        console.error("Failed to create unit:", errorData);
       }
     } catch (error) {
-      setError("An error occurred while creating the assignment.");
+      setError("An error occurred while creating the unit.");
       setSuccess(null);
-      console.error("Error creating assignment:", error);
+      console.error("Error creating unit:", error);
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4 text-gray-700">
-        Create New Assignment
-      </h2>
+      <h2 className="text-xl font-bold mb-4 text-gray-700">Create New Unit</h2>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
       {success && <p className="text-green-500 mb-4">{success}</p>}
@@ -83,11 +78,9 @@ function CreateAssignment({ isOpen, onClose, token }) {
       <form onSubmit={handleFormSubmit}>
         {/* Unit ID */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Unit ID
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Unit ID</label>
           <input
-            type="number"
+            type="text"
             name="unitId"
             value={formData.unitId}
             onChange={handleInputChange}
@@ -96,16 +89,31 @@ function CreateAssignment({ isOpen, onClose, token }) {
             required
           />
         </div>
-        {/* Title */}
+
+        {/* Code */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Title</label>
+          <label className="block text-gray-700 font-medium mb-2">Code</label>
           <input
             type="text"
-            name="title"
-            value={formData.title}
+            name="code"
+            value={formData.code}
             onChange={handleInputChange}
             className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter Assignment Title"
+            placeholder="Enter Unit Code (e.g., CS101)"
+            required
+          />
+        </div>
+
+        {/* Name */}
+        <div className="mb-4">
+          <label className="block text-gray-700 font-medium mb-2">Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
+            placeholder="Enter Unit Name"
             required
           />
         </div>
@@ -120,25 +128,10 @@ function CreateAssignment({ isOpen, onClose, token }) {
             value={formData.description}
             onChange={handleInputChange}
             className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter Assignment Description"
+            placeholder="Enter Unit Description"
             rows="4"
             required
           ></textarea>
-        </div>
-
-        {/* Due Date */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Due Date
-          </label>
-          <input
-            type="date"
-            name="dueDate"
-            value={formData.dueDate}
-            onChange={handleInputChange}
-            className="w-full text-gray-600 border border-gray-300 rounded px-3 py-2"
-            required
-          />
         </div>
 
         {/* Buttons */}
@@ -152,9 +145,9 @@ function CreateAssignment({ isOpen, onClose, token }) {
           </button>
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
           >
-            Create Assignment
+            Create Unit
           </button>
         </div>
       </form>
@@ -162,4 +155,4 @@ function CreateAssignment({ isOpen, onClose, token }) {
   );
 }
 
-export default CreateAssignment;
+export default CreateUnit;
