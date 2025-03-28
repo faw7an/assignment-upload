@@ -12,11 +12,11 @@ export default function Dashboard() {
       <header className="bg-blue-500 text-white py-4 px-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <Nav />
-        <Profile />
       </header>
       <main className="flex-grow p-6">
         {/* responsive [greeting, assignment] */}
         {/* pass props user's name */}
+        <Profile />
         <Greetings user="Fauzan"/> 
         <Assignment unit="COM-1200" description={"This is some content for Unit."}/>
         
