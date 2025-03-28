@@ -37,12 +37,16 @@ function Profile() {
     <div className="z-10">
       {/* Overlay */}
       {isVisible && (
-  <div
-    className="fixed top-0 left-0 w-full h-full bg-black/50 z-40"
-    onClick={() => setVisibility(false)} // Close the profile card when clicking on the overlay
-  ></div>
-)}
-      <div className="profile absolute top-22 w-10 h-8 right-2 z-50" ref={profileButtonRef} onClick={handleVisiblity}>
+        <div
+          className="fixed top-0 left-0 w-full h-full bg-black/50 z-40"
+          onClick={() => setVisibility(false)} // Close the profile card when clicking on the overlay
+        ></div>
+      )}
+      <div
+        className="profile absolute top-22 w-10 h-8 right-2 z-50"
+        ref={profileButtonRef}
+        onClick={handleVisiblity}
+      >
         <Image
           src={userDefault}
           alt="profile"
@@ -75,7 +79,7 @@ function Profile() {
         <h2 className="text-lg font-semibold mb-2">Fauzan Said</h2>
         <p className="text-gray-600 mb-1">
           <span className="font-semibold">Email:</span>{" "}
-          <span className="font-medium">fauzdasoodais@gmail.com</span>
+          <span className="font-medium">example@test.co</span>
         </p>
         <p className="text-gray-600">
           <span className="font-semibold">Course:</span>{" "}
@@ -86,7 +90,14 @@ function Profile() {
             <Image src={settingsIcon} alt="settings" className="w-5 h-5 " />
             Update profile
           </button>
-          <button className="flex gap-2 rounded bg-red-500 hover:bg-red-600 hover:text-white text-white p-2 px-4">
+          <button
+            className="flex gap-2 rounded bg-red-500 hover:bg-red-600 hover:text-white text-white p-2 px-4"
+            onClick={() => {
+              localStorage.clear(); // Clear local storage
+              // refresh window
+              window.location.reload();
+            }}
+          >
             Log out
             <Image src={logOutIcon} alt="log out" className="w-5 h-5 " />
           </button>
