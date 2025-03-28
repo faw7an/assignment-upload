@@ -1,26 +1,32 @@
+import addIcon from "../../../public/assets/icons/plus-solid (1).svg";
+import Image from "next/image";
+import Greetings from "../components/greetings/Greetings";
+import Assignment from "../components/task/task";
+import Nav from "../components/nav/Nav";
+import Profile from "../components/profile/Profile";
+
+
 export default function Dashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <header className="bg-blue-500 text-white py-4 px-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
+        <Nav />
+        <Profile />
       </header>
       <main className="flex-grow p-6">
-        <h1 className="text-4xl text-gray-600 mb-3">Hello, John Doe</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Unit 1 */}
-          <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-lg font-bold">Unit 1</h2>
-            <p className="text-gray-600">This is some content for Unit 1.</p>
-          </div>
-          {/* Unit 2 */}
-          <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-lg font-bold">Unit 2</h2>
-            <p className="text-gray-600">This is some content for Unit 2.</p>
-          </div>
-          {/* Unit 3 */}
-          <div className="bg-white p-4 rounded shadow">
-            <h2 className="text-lg font-bold">Unit 3</h2>
-            <p className="text-gray-600">This is some content for Unit 3.</p>
+        {/* responsive [greeting, assignment] */}
+        {/* pass props user's name */}
+        <Greetings user="Fauzan"/> 
+        <Assignment unit="COM-1200" description={"This is some content for Unit."}/>
+        
+        {/* Add new task icon */}
+        <div className="relative">
+          <div className="flex items-center bg-red-500 text-white w-10 hover:w-32 transition-all duration-300 p-2 m-5 rounded-full overflow-hidden cursor-pointer">
+            <Image src={addIcon} alt="Add Icon" className="w-6 h-6" />
+            <p className="ml-3 whitespace-nowrap opacity-100">
+              Add Task
+            </p>
           </div>
         </div>
       </main>
