@@ -1,14 +1,15 @@
 import addIcon from "../../../public/assets/icons/plus-solid (1).svg";
 import Image from "next/image";
 import Greetings from "../components/greetings/Greetings";
-import Assignment from "../components/task/task";
+import Assignment from "../components/task/Task";
 import Nav from "../components/nav/Nav";
 import Profile from "../components/profile/Profile";
 
 
 export default function Dashboard() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
+    <div className="relative flex flex-col min-h-screen bg-gray-100">
+      <Profile />
       <header className="bg-blue-500 text-white py-4 px-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <Nav />
@@ -16,9 +17,7 @@ export default function Dashboard() {
       <main className="flex-grow p-6">
         {/* responsive [greeting, assignment] */}
         {/* pass props user's name */}
-        <Profile />
         <Greetings user="Fauzan"/> 
-        <Assignment unit="COM-1200" description={"This is some content for Unit."}/>
         
         {/* Add new task icon */}
         <div className="relative">

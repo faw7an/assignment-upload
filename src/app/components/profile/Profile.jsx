@@ -1,24 +1,52 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import userDefault from "../../../../public/assets/icons/userDefault.svg";
 import settingsIcon from "../../../../public/assets/icons/gear-solid.svg";
 import logOutIcon from "../../../../public/assets/icons/right-from-bracket-solid.svg";
 import fawzan from "../../../../public/assets/images/faw7y.jpg";
-import "./profile.css";
+
 function Profile() {
   const [isVisible, setVisibility] = useState(false);
+  const profileCardRef = useRef(null);
+  const profileButtonRef = useRef(null);
 
-  const handleVisiblity = () => {
+  const handleVisiblity = (event) => {
+    event.stopPropagation();
     setVisibility(!isVisible);
   };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        profileCardRef.current &&
+        !profileCardRef.current.contains(event.target) &&
+        profileButtonRef.current &&
+        !profileButtonRef.current.contains(event.target)
+      ) {
+        setVisibility(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="z-10">
-      <div className="profile" onClick={handleVisiblity}>
+      {/* Overlay */}
+      {isVisible && (
+  <div
+    className="fixed top-0 left-0 w-full h-full bg-black/50 z-40"
+    onClick={() => setVisibility(false)} // Close the profile card when clicking on the overlay
+  ></div>
+)}
+      <div className="profile absolute top-22 w-10 h-8 right-2 z-50" ref={profileButtonRef} onClick={handleVisiblity}>
         <Image
           src={userDefault}
           alt="profile"
-          className="w-6 h-6 sm:w-9 sm:h-9 absolute right-5 top-[-40] sm:right-5 sm:top-10 p-0.5 bg-white rounded-full "
+          className="w-6 h-6 sm:w-9 sm:h-9 absolute right-5 top-[-40] sm:top-[-45] sm:right-5 p-0.5 bg-white rounded-full "
         />
       </div>
       {/* Profile Card */}
@@ -28,6 +56,7 @@ function Profile() {
         }`}
       > */}
       <div
+        ref={profileCardRef}
         className={`z-50 w-84 fixed right-5 top-20 text-black flex flex-col items-center justify-center rounded-lg bg-white shadow-lg p-6 transition-opacity duration-300 ${
           isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
