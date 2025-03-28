@@ -9,7 +9,7 @@ function Modal({ isOpen, onClose, children }) {
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
         {/* Close Button */}
         <button
-          className="absolute text-4xl text-black  top-53 right-190  hover:text-gray-700"
+          className="relative text-4xl left-90 text-black hover:text-gray-700"
           onClick={onClose}
         >
           ✕

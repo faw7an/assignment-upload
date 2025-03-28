@@ -1,13 +1,72 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Modal from "../modal/Modal";
 
-function CreateAssignment({ isOpen, onClose }) {
-  const handleFormSubmit = (e) => {
+function CreateAssignment({ isOpen, onClose, token }) {
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    dueDate: "",
+    unitId: "",
+  });
+
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Assignment created!");
-    onClose(); // Close the modal after submission
+
+    // Prepare the request body
+    const requestBody = {
+      title: formData.title,
+      description: formData.description,
+      unitId: formData.unitId,
+      dueDate: formData.dueDate,
+    };
+
+    try {
+      const response = await fetch("/api/dashboard/assignments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkNWU2ZWVjOC0wYzAxLTExZjAtYWNmNi04NjNmOTY1MDQ3NGYiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDMxOTAzNjksImV4cCI6MTc0MzE5Mzk2OX0.NkFPItci7NtRrx6UM36L0IKAqI7BXoUG_4Lwt1lEfbo`, // Use the token passed as a prop
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess("Assignment created successfully!");
+        setError(null);
+        console.log("Assignment created successfully:", data);
+        setFormData({
+          title: "",
+          description: "",
+          dueDate: "",
+          unitId: "",
+        });
+        
+
+        setTimeout(() => {
+          onClose(); 
+          setSuccess(null);
+        }, 1200); 
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to create assignment.");
+        setSuccess(null);
+        console.error("Failed to create assignment:", errorData);
+      }
+    } catch (error) {
+      setError("An error occurred while creating the assignment.");
+      setSuccess(null);
+      console.error("Error creating assignment:", error);
+    }
   };
 
   return (
@@ -15,31 +74,54 @@ function CreateAssignment({ isOpen, onClose }) {
       <h2 className="text-xl font-bold mb-4 text-gray-700">
         Create New Assignment
       </h2>
+
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {success && <p className="text-green-500 mb-4">{success}</p>}
+
       <form onSubmit={handleFormSubmit}>
-        {/* Unit Code */}
+        {/* Unit ID */}
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2">
-            Unit Code
+            Unit ID
           </label>
           <input
-            type="text"
+            type="number"
+            name="unitId"
+            value={formData.unitId}
+            onChange={handleInputChange}
             className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter Unit Code"
+            placeholder="Enter Unit ID"
+            required
+          />
+        </div>
+        {/* Title */}
+        <div className="mb-4">
+          <label className="block text-gray-700 font-medium mb-2">Title</label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleInputChange}
+            className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
+            placeholder="Enter Assignment Title"
             required
           />
         </div>
 
-        {/* Unit Title */}
+        {/* Description */}
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2">
-            Unit Title
+            Description
           </label>
-          <input
-            type="text"
-            className="w-full border text-gray-700 border-gray-300 rounded px-3 py-2"
-            placeholder="Enter Unit Title"
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
+            placeholder="Enter Assignment Description"
+            rows="4"
             required
-          />
+          ></textarea>
         </div>
 
         {/* Due Date */}
@@ -49,43 +131,10 @@ function CreateAssignment({ isOpen, onClose }) {
           </label>
           <input
             type="date"
+            name="dueDate"
+            value={formData.dueDate}
+            onChange={handleInputChange}
             className="w-full text-gray-600 border border-gray-300 rounded px-3 py-2"
-            required
-          />
-        </div>
-
-        {/* Course Title (Dropdown) */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Course Title
-          </label>
-          <select
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            required
-          >
-            <option className="text-gray-700" value="">
-              Select Course
-            </option>
-            <option className="text-gray-700" value="Computer Science">
-              Computer Science
-            </option>
-            <option className="text-gray-700" value="Information Technology">
-              Information Technology
-            </option>
-            <option className="text-gray-700" value="Software Engineering">
-              Software Engineering
-            </option>
-          </select>
-        </div>
-
-        {/* Attach Assignment File */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Attach Assignment File
-          </label>
-          <input
-            type="file"
-            className="w-full border border-gray-300 rounded px-3 py-2"
             required
           />
         </div>
