@@ -37,7 +37,13 @@ export default function Dashboard() {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router]
+
+  // const storedToken = localStorage.getItem("authToken");
+  //   const storeToken = localStorage.getItem("authToken");
+  //   setToken(storeToken);
+  // }
+);
 
   const handleOpenCreateUnit = () => setIsCreateUnitOpen(true);
   const handleCloseCreateUnit = () => setIsCreateUnitOpen(false);

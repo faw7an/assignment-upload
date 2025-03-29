@@ -1,76 +1,76 @@
 "use client";
 import React, { useState,useEffect } from "react";
 import Modal from "../modal/Modal";
+import axios from "axios";
+
 
 function CreateAssignment({ isOpen, onClose, token }) {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    dueDate: "",
-    unitId: "",
+    title:"",
+    description:"",
+    dueDate:"",
+    unitId:""
   });
 
-  
-  
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [error,setError] = useState(null);
+  const [success,setSuccess] = useState(null);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleInputChange = (e)=>{
+    const {name,value} = e.target;
+    setFormData({ ...formData, [name]: value})
   };
 
-  const handleFormSubmit = async (e) => {
+  const handleFormSubmit = async (e)=>{
     e.preventDefault();
 
-    // Prepare the request body
+    // prep req body 
     const requestBody = {
       title: formData.title,
       description: formData.description,
-      unitId: formData.unitId,
-      dueDate: formData.dueDate,
+      dueDate:formData.dueDate,
+      unitId:formData.unitId
     };
 
-    try {
-      const response = await fetch("/api/dashboard/assignments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Use the token passed as a prop
-        },
-        body: JSON.stringify(requestBody),
+    try{
+      const response = await axios.post(
+        "/api/dashboard/assignments",
+        requestBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization:`Bearer ${token}`,
+          },
+        }
+      );
+      setSuccess("Assignment created successfully");
+      setError(null);
+      console.log("Assignment created successfully");
+      // reset form data
+      setFormData({
+        title:"",
+        description:"",
+        dueDate:"",
+        unitId:"",
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setSuccess("Assignment created successfully!");
-        setError(null);
-        console.log("Assignment created successfully:", data);
-        setFormData({
-          title: "",
-          description: "",
-          dueDate: "",
-          unitId: "",
-        });
-        
-
-        setTimeout(() => {
-          onClose(); 
-          setSuccess(null);
-        }, 1200); 
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Failed to create assignment.");
+      setTimeout(() => {
+        onClose();
         setSuccess(null);
-        console.error("Failed to create assignment:", errorData);
+      }, 1200);
+    } catch(error){
+      if(error.response){
+        setError(error.response.data.message || "Failed to create assignment");
+        console.log("Failed to create assignment");
+
+      }else{
+        setError("An error occurred while creating assignment");
+        console.error("Error creating assignment");
+
       }
-    } catch (error) {
-      setError("An error occurred while creating the assignment.");
       setSuccess(null);
-      console.error("Error creating assignment:", error);
+
     }
   };
-
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <h2 className="text-xl font-bold mb-4 text-gray-700">

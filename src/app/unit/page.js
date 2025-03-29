@@ -1,5 +1,5 @@
 "use client";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Nav from "../components/nav/Nav";
 import Profile from "../components/profile/Profile";
@@ -7,31 +7,77 @@ import DeployedAssignment from "../components/deployedAssign/DeployedAssignment"
 import Modal from "../components/modal/Modal";
 import CreateAssignment from "../components/createAssignment/CreateAssignment";
 import addIcon from "../../../public/assets/icons/plus-solid (1).svg"; // Replace with the actual path to your icon
+import Loading from "../components/loading/Loading";
+import axios from "axios";
 
 export default function UnitPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [deployed, setDeployed] = useState([]);
 
   const handleModalToggle = () => {
     setIsModalOpen((prev) => !prev); // Toggle the modal's visibility
   };
 
-  const [token ,setToken]=useState(null);
-  
-    useEffect(()=>{
-      const storeToken = localStorage.getItem("authToken");
-      setToken(storeToken);
-  
-    },[]);
-    
+  useEffect(() => {
+    const storeToken = localStorage.getItem("authToken");
+    setToken(storeToken);
+
+    // Fetching deployed assignment
+    const fetchDeployedAssignment = async () => {
+      try {
+        const response = await axios.get("/api/dashboard/assignments/", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${storeToken}`,
+          },
+        });
+        console.log(response.data.assignments);
+        setDeployed(response.data.assignments);
+      } catch (error) {
+        console.error("Failed to fetch courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (storeToken) {
+      fetchDeployedAssignment();
+    } else {
+      console.error("No token found in localStorage");
+      setLoading(false); // Stop loading if no token is found
+    }
+  }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
-    <div className="relative flex flex-col min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <Profile />
       <header className="bg-blue-500 text-white py-4 px-6">
-        <h1 className="text-2xl font-bold mb-4">Assignments for Unit -unit-code</h1>
+        <h1 className="text-2xl font-bold mb-4">
+          Assignments for Unit - {deployed[0]?.unit?.code || "N/A"}
+        </h1>
         <Nav />
       </header>
       <main className="flex-grow p-6">
-        <DeployedAssignment unit="COM-1200" description={"This is some content for Unit."} />
+        {/* Map on deployed assignments */}
+        {deployed.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {deployed.map((assignment) => (
+              <DeployedAssignment
+                key={assignment.id}
+                unit={assignment.unit?.code}
+                description={assignment.description}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-600">No Deployed assignments available.</p>
+        )}
+
         {/* Add new task icon */}
         <div className="relative">
           <div
