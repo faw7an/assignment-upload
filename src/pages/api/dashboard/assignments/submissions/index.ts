@@ -78,21 +78,35 @@ export default async function handler(
       return res.status(400).json({ message: 'Submission deadline has passed' });
     }
     
-    // Handle file upload
-    const file = files.file as formidable.File;
+    // Handle file upload - The file might be under a different key than 'file'
+    console.log('Files received:', Object.keys(files));
     
-    if (!file) {
+    // Get the first file regardless of key name
+    const fileKey = Object.keys(files)[0];
+    const file = files[fileKey] as formidable.File;
+    
+    // If it's an array, take the first item
+    const actualFile = Array.isArray(file) ? file[0] : file;
+    
+    if (!actualFile) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
+    
+    console.log('File details:', {
+      keys: Object.keys(actualFile),
+      filepath: actualFile.filepath,
+      mimetype: actualFile.mimetype,
+      originalFilename: actualFile.originalFilename
+    });
     
     // Create submission record
     const submission = await prisma.submission.create({
       data: {
         assignmentId,
         studentId: decoded.userId,
-        fileName: file.originalFilename || 'unnamed-file',
-        filePath: path.relative(process.cwd(), file.filepath),
-        fileType: file.mimetype || null,
+        fileName: actualFile.originalFilename || 'unnamed-file',
+        filePath: path.relative(process.cwd(), actualFile.filepath),
+        fileType: actualFile.mimetype || null,
       },
     });
     
