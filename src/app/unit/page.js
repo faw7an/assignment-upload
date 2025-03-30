@@ -13,7 +13,6 @@ import axios from "axios";
 export default function UnitPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [deployed, setDeployed] = useState([]);
 
   const handleModalToggle = () => {
@@ -49,9 +48,7 @@ export default function UnitPage() {
     }
   }, []);
 
-  if (loading) {
-    return <Loading />;
-  }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">

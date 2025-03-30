@@ -5,7 +5,7 @@ function DeployedAssignment({ unit, description }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 z-0">
       {/* Unit 1 */}
-      <div className="bg-white p-4 min-w-[250px] rounded shadow">
+      <div className="bg-white p-4 max-w-[450px] min-w-[250px] rounded shadow">
         <h2 className="text-lg font-bold">{unit}</h2>
         <p className="text-gray-600">{description}</p>
         <Link href={"/upload"}>

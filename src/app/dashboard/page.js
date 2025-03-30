@@ -1,66 +1,63 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import Greetings from "../components/greetings/Greetings";
+import axios from "axios";
 import Nav from "../components/nav/Nav";
 import Profile from "../components/profile/Profile";
-import UnitCard from "../components/unitCard/UnitCard";
-import CreateUnit from "../components/createUnit/CreateUnit";
+import Course from "../components/courseCard/CourseCard";
+import Greetings from "../components/greetings/Greetings";
+import CreateCourse from "../components/createCourse/CreateCourse";
+
 
 export default function Dashboard() {
-  const router = useRouter();
-  const [isCreateUnitOpen, setIsCreateUnitOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [token, setToken] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newCourse, setNewCourse] = useState(null);
+
+  const handleModalToggle = () => {
+    setIsModalOpen((prev) => !prev);
+  };
+
+  const handleCourseCreated = (course) => {
+    setNewCourse(course);
+  };
+
+  const handleCourseDeleted = (courseId) => {
+    setCourses((prevCourses) => prevCourses.filter((course) => course.id !== courseId));
+  };
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const storeToken = localStorage.getItem("authToken");
+    setToken(storeToken);
+
+    const fetchCourses = async () => {
       try {
-        const storedToken = localStorage.getItem("authToken");
-        
-        if (!storedToken) {
-          // No token found, redirect to login
-          router.push('/log-in');
-          return;
-        }
-        
-        setToken(storedToken);
-        setIsAuthenticated(true);
+        const response = await axios.get("/api/dashboard/courses/", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${storeToken}`,
+          },
+        });
+        setCourses(response.data.courses);
       } catch (error) {
-        console.error('Authentication error:', error);
-        router.push('/log-in');
+        console.error("Failed to fetch courses:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
-  }, [router]
+    fetchCourses();
+  }, []);
 
-  // const storedToken = localStorage.getItem("authToken");
-  //   const storeToken = localStorage.getItem("authToken");
-  //   setToken(storeToken);
-  // }
-);
+  useEffect(() => {
+    if (!isModalOpen && newCourse) {
+      setCourses((prevCourses) => [newCourse, ...prevCourses]);
+      setNewCourse(null);
+    }
+  }, [isModalOpen, newCourse]);
 
-  const handleOpenCreateUnit = () => setIsCreateUnitOpen(true);
-  const handleCloseCreateUnit = () => setIsCreateUnitOpen(false);
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  // Only render dashboard if authenticated
-  if (!isAuthenticated) {
-    return null; // This prevents flash of content before redirect completes
-  }
+  
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
@@ -71,33 +68,44 @@ export default function Dashboard() {
       </header>
       <main className="flex-grow p-6">
         <Greetings user="Fauzan" />
-        <UnitCard
-          unitId={"1"}
-          unitCode={"COM1023"}
-          unitTitle={"Computer Networking"}
-          courseTitle={"Computer Science"}
-          dueDate={"12-11-2025"}
-        />
-        {/* Add Unit Button */}
-        <div className="mt-6">
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
-            onClick={handleOpenCreateUnit}
+        {courses.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {courses.map((course) => (
+              <Course
+                key={course.id}
+                courseId={course.id}
+                courseCode={course.code}
+                courseTitle={course.name}
+                description={course.description}
+                onCourseDeleted={handleCourseDeleted} // Pass the callback
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-600">No courses available.</p>
+        )}
+
+        {/* Add new course button */}
+        <div className="relative">
+          <div
+            className="flex items-center bg-green-500 text-white w-32 p-2 m-5 rounded cursor-pointer"
+            onClick={handleModalToggle}
           >
-            Add Unit
-          </button>
+            <p className="ml-3 whitespace-nowrap opacity-100">Add Course</p>
+          </div>
         </div>
+
+        {/* Modal */}
+        <CreateCourse
+          isOpen={isModalOpen}
+          onClose={handleModalToggle}
+          token={token}
+          onCourseCreated={handleCourseCreated}
+        />
       </main>
       <footer className="bg-gray-200 text-center py-4">
-        <p className="text-gray-600">© 2025 Dashboard. All rights reserved.</p>
+        <p className="text-gray-600">© 2025 Courses. All rights reserved.</p>
       </footer>
-
-      {/* Create Unit Modal */}
-      <CreateUnit
-        isOpen={isCreateUnitOpen}
-        onClose={handleCloseCreateUnit}
-        token={token} // Pass the token fetched from local storage
-      />
     </div>
   );
 }
