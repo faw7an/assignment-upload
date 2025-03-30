@@ -1,8 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
-import path from 'path';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -11,6 +9,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Verify authorization
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(' ')[1];
 
@@ -18,7 +17,7 @@ export default async function handler(
     return res.status(401).json({ message: 'Authentication required' });
   }
 
-  // Get the submission ID from the URL
+  // Extract submission ID from URL
   const { id } = req.query;
   const submissionId = parseInt(id as string);
 
@@ -29,124 +28,91 @@ export default async function handler(
   try {
     // Verify JWT token
     const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
-    
-    // GET: Download or view submission details
-    if (req.method === 'GET') {
-      const submission = await prisma.submission.findUnique({
-        where: { id: submissionId },
-        include: {
-          student: {
-            select: {
-              id: true,
-              username: true,
-              email: true,
-            },
-          },
-          assignment: {
-            include: {
-              unit: true,
-            },
+
+    // Check if submission exists and get related information
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      include: {
+        student: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
           },
         },
-      });
-
-      if (!submission) {
-        return res.status(404).json({ message: 'Submission not found' });
-      }
-
-      // Check permissions: only admin or the student who submitted can access
-      if (decoded.role !== 'ADMIN' && submission.studentId !== decoded.userId) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-
-      // Check if the download parameter is present
-      const download = req.query.download === 'true';
-      
-      if (download) {
-        // Serve the file for download
-        const filePath = path.join(process.cwd(), submission.filePath);
-        
-        if (!fs.existsSync(filePath)) {
-          return res.status(404).json({ message: 'File not found' });
+        assignment: {
+          include: {
+            unit: {
+              include: {
+                course: true
+              }
+            }
+          }
         }
-        
-        const fileContents = fs.readFileSync(filePath);
-        
-        res.setHeader('Content-Type', submission.fileType || 'application/octet-stream');
-        res.setHeader('Content-Disposition', `attachment; filename=${submission.fileName}`);
-        
-        return res.send(fileContents);
       }
-      
-      // Just return submission details
+    });
+
+    if (!submission) {
+      return res.status(404).json({ message: 'Submission not found' });
+    }
+
+    // Check if user has permission to access this submission
+    const isSystemAdmin = decoded.role === 'ADMIN';
+    const isCourseAdmin = submission.assignment.unit.course.courseAdminId === decoded.userId;
+    const isSubmissionOwner = submission.studentId === decoded.userId;
+
+    if (!isSystemAdmin && !isCourseAdmin && !isSubmissionOwner) {
+      return res.status(403).json({ 
+        message: 'Access denied. You do not have permission to access this submission.' 
+      });
+    }
+
+    // GET: Fetch submission details
+    if (req.method === 'GET') {
       return res.status(200).json({ submission });
     }
     
-    // PUT: Add feedback (admin only)
+    // PUT: Update submission (admin or course admin only)
     else if (req.method === 'PUT') {
-      // Verify user is an admin
-      if (decoded.role !== 'ADMIN') {
-        return res.status(403).json({ message: 'Access denied. Admins only.' });
+      // Only admins and course admins can grade/provide feedback
+      if (!isSystemAdmin && !isCourseAdmin) {
+        return res.status(403).json({ 
+          message: 'Access denied. Only course admins or system admins can update submissions.' 
+        });
       }
-      
+
       const { feedback } = req.body;
-      
-      if (feedback === undefined) {
-        return res.status(400).json({ message: 'Feedback is required' });
-      }
-      
-      // Check if submission exists
-      const submission = await prisma.submission.findUnique({
-        where: { id: submissionId },
-      });
-      
-      if (!submission) {
-        return res.status(404).json({ message: 'Submission not found' });
-      }
       
       // Update the submission with feedback
       const updatedSubmission = await prisma.submission.update({
         where: { id: submissionId },
         data: {
-          feedback,
+          feedback: feedback !== undefined ? feedback : submission.feedback,
         },
       });
       
       return res.status(200).json({
-        message: 'Feedback provided successfully',
+        message: 'Submission updated successfully',
         submission: updatedSubmission,
       });
     }
     
-    // DELETE: Delete a submission (admin or owner)
+    // DELETE: Delete submission (admin, course admin, or submission owner)
     else if (req.method === 'DELETE') {
-      // Fetch the submission
-      const submission = await prisma.submission.findUnique({
-        where: { id: submissionId },
-      });
-      
-      if (!submission) {
-        return res.status(404).json({ message: 'Submission not found' });
+      if (!isSystemAdmin && !isCourseAdmin && !isSubmissionOwner) {
+        return res.status(403).json({ 
+          message: 'Access denied. You do not have permission to delete this submission.' 
+        });
       }
       
-      // Check permissions: only admin or the student who submitted can delete
-      if (decoded.role !== 'ADMIN' && submission.studentId !== decoded.userId) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-      
-      // Delete the file
-      const filePath = path.join(process.cwd(), submission.filePath);
-      
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-      
-      // Delete the submission record
+      // Delete the submission
       await prisma.submission.delete({
         where: { id: submissionId },
       });
       
-      return res.status(200).json({ message: 'Submission deleted successfully' });
+      return res.status(200).json({
+        message: 'Submission deleted successfully',
+      });
     }
     
     // Other methods not allowed

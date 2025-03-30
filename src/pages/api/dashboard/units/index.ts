@@ -23,10 +23,78 @@ export default async function handler(
 
   try {
     // Verify token
-    jwt.verify(token, JWT_SECRET as string);
+    const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
     
-    // Fetch all units
+    // Extract query parameters for filtering
+    const { courseId } = req.query;
+    
+    // Build where clause based on query parameters
+    let whereClause: any = {};
+    
+    if (courseId) {
+      whereClause.courseId = courseId as string;
+    }
+    
+    // For regular students, only show units from enrolled courses
+    const isSystemAdmin = decoded.role === 'ADMIN';
+    
+    if (!isSystemAdmin) {
+      // Get all courses where the user is enrolled or is the admin
+      const userCourses = await prisma.course.findMany({
+        where: {
+          OR: [
+            {
+              courseAdminId: decoded.userId,
+            },
+            {
+              enrolledStudents: {
+                some: {
+                  userId: decoded.userId,
+                },
+              },
+            },
+          ],
+        },
+        select: {
+          id: true,
+        },
+      });
+      
+      const userCourseIds = userCourses.map(course => course.id);
+      
+      // If specific courseId is requested, check if user has access to it
+      if (courseId) {
+        if (!userCourseIds.includes(courseId as string)) {
+          return res.status(403).json({ 
+            message: 'You do not have access to this course.' 
+          });
+        }
+      } else {
+        // Otherwise, filter by all accessible courses
+        whereClause.courseId = {
+          in: userCourseIds,
+        };
+      }
+    }
+    
+    // Fetch units with filter
     const units = await prisma.unit.findMany({
+      where: whereClause,
+      include: {
+        course: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            courseAdmin: {
+              select: {
+                id: true,
+                username: true
+              }
+            }
+          }
+        }
+      },
       orderBy: {
         createdAt: 'desc',
       },

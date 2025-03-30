@@ -25,55 +25,38 @@ export default async function handler(
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
     
-    const { code, name, description, courseId } = req.body;
+    const { code, name, description } = req.body;
 
     // Validate input
-    if (!code || !name || !courseId) {
-      return res.status(400).json({ message: 'Unit code, name, and course ID are required' });
+    if (!code || !name) {
+      return res.status(400).json({ message: 'Course code and name are required' });
     }
 
-    // Get the course to check permissions
-    const course = await prisma.course.findUnique({
-      where: { id: courseId },
-    });
-
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-
-    // Check if user is system admin or course admin
-    const isSystemAdmin = decoded.role === 'ADMIN';
-    const isCourseAdmin = course.courseAdminId === decoded.userId;
-
-    if (!isSystemAdmin && !isCourseAdmin) {
-      return res.status(403).json({ message: 'Access denied. Only course admins or system admins can create units.' });
-    }
-
-    // Check if unit with this code already exists
-    const existingUnit = await prisma.unit.findUnique({
+    // Check if course with this code already exists
+    const existingCourse = await prisma.course.findUnique({
       where: { code },
     });
 
-    if (existingUnit) {
-      return res.status(409).json({ message: 'Unit with this code already exists' });
+    if (existingCourse) {
+      return res.status(409).json({ message: 'Course with this code already exists' });
     }
 
-    // Create the unit
-    const unit = await prisma.unit.create({
+    // Create the course with the authenticated user as the course admin
+    const course = await prisma.course.create({
       data: {
         code,
         name,
         description: description || null,
-        courseId: courseId,
+        courseAdminId: decoded.userId
       },
     });
 
     return res.status(201).json({
-      message: 'Unit created successfully',
-      unit,
+      message: 'Course created successfully',
+      course,
     });
   } catch (error) {
-    console.error('Create Unit Error:', error);
+    console.error('Create Course Error:', error);
     if ((error as Error).name === 'JsonWebTokenError') {
       return res.status(401).json({ message: 'Invalid token' });
     }

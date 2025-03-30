@@ -9,6 +9,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Verify authorization
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(' ')[1];
 
@@ -16,102 +17,102 @@ export default async function handler(
     return res.status(401).json({ message: 'Authentication required' });
   }
 
-  // Get course ID from URL
+  // Extract course ID from URL
   const { id } = req.query;
   
-  if (!id || typeof id !== 'string') {
-    return res.status(400).json({ message: 'Invalid course ID' });
+  if (!id) {
+    return res.status(400).json({ message: 'Course ID is required' });
   }
 
   try {
     // Verify JWT token
     const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
-    
-    // GET: Get course details
-    if (req.method === 'GET') {
-      // Check if user is enrolled or admin
-      if (decoded.role !== 'ADMIN') {
-        const enrollment = await prisma.userCourse.findUnique({
-          where: {
-            userId_courseId: {
-              userId: decoded.userId,
-              courseId: id,
-            },
-          },
-        });
-        
-        if (!enrollment) {
-          return res.status(403).json({ message: 'Access denied. Not enrolled in this course.' });
+
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: id as string },
+      include: {
+        courseAdmin: {
+          select: {
+            id: true,
+            username: true,
+            email: true
+          }
         }
       }
-      
-      const course = await prisma.course.findUnique({
-        where: { id },
-        include: {
-          units: {
-            include: {
-              unit: true,
+    });
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    // Check if user is system admin or course admin
+    const isSystemAdmin = decoded.role === 'ADMIN';
+    const isCourseAdmin = course.courseAdminId === decoded.userId;
+
+    // GET: Fetch course details
+    if (req.method === 'GET') {
+      // Include additional information for admins
+      if (isSystemAdmin || isCourseAdmin) {
+        const fullCourse = await prisma.course.findUnique({
+          where: { id: id as string },
+          include: {
+            courseAdmin: {
+              select: {
+                id: true,
+                username: true,
+                email: true
+              }
             },
-          },
-          _count: {
-            select: {
-              enrolledStudents: true,
+            enrolledStudents: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                    email: true
+                  }
+                }
+              }
             },
-          },
-        },
-      });
-      
-      if (!course) {
-        return res.status(404).json({ message: 'Course not found' });
+            courseUnits: true
+          }
+        });
+        
+        return res.status(200).json({ course: fullCourse });
       }
       
       return res.status(200).json({ course });
     }
     
-    // PUT: Update course details (admin only)
+    // PUT: Update course (admin or course admin only)
     else if (req.method === 'PUT') {
-      // Check if user is admin
-      if (decoded.role !== 'ADMIN') {
-        return res.status(403).json({ message: 'Access denied. Admins only.' });
+      if (!isSystemAdmin && !isCourseAdmin) {
+        return res.status(403).json({ 
+          message: 'Access denied. Only course admins or system admins can update courses.' 
+        });
       }
-      
+
       const { name, code, description } = req.body;
       
-      // Validate input
-      if (!name && !code && !description) {
-        return res.status(400).json({ message: 'No fields to update' });
-      }
-      
-      // Check if course exists
-      const existingCourse = await prisma.course.findUnique({
-        where: { id },
-      });
-      
-      if (!existingCourse) {
-        return res.status(404).json({ message: 'Course not found' });
-      }
-      
-      // Check if new code is already taken
-      if (code && code !== existingCourse.code) {
-        const codeExists = await prisma.course.findFirst({
-          where: {
-            code,
-            id: { not: id },
-          },
+      // If changing code, check it's not already taken
+      if (code && code !== course.code) {
+        const existingCourse = await prisma.course.findUnique({
+          where: { code }
         });
         
-        if (codeExists) {
+        if (existingCourse) {
           return res.status(409).json({ message: 'Course with this code already exists' });
         }
       }
       
-      // Update course
+      // Update the course
       const updatedCourse = await prisma.course.update({
-        where: { id },
+        where: { id: id as string },
         data: {
-          ...(name && { name }),
-          ...(code && { code }),
-          ...(description !== undefined && { description }),
+          name: name || course.name,
+          code: code || course.code,
+          description: description !== undefined ? description : course.description,
         },
       });
       
@@ -121,31 +122,25 @@ export default async function handler(
       });
     }
     
-    // DELETE: Delete course (admin only)
+    // DELETE: Remove course (system admin or course admin only)
     else if (req.method === 'DELETE') {
-      // Check if user is admin
-      if (decoded.role !== 'ADMIN') {
-        return res.status(403).json({ message: 'Access denied. Admins only.' });
+      if (!isSystemAdmin && !isCourseAdmin) {
+        return res.status(403).json({ 
+          message: 'Access denied. Only course admins or system admins can delete courses.' 
+        });
       }
       
-      // Check if course exists
-      const existingCourse = await prisma.course.findUnique({
-        where: { id },
-      });
-      
-      if (!existingCourse) {
-        return res.status(404).json({ message: 'Course not found' });
-      }
-      
-      // Delete course (cascade delete will handle relations)
+      // Delete the course
       await prisma.course.delete({
-        where: { id },
+        where: { id: id as string },
       });
       
-      return res.status(200).json({ message: 'Course deleted successfully' });
+      return res.status(200).json({
+        message: 'Course deleted successfully',
+      });
     }
     
-    // Method not allowed
+    // Other methods not allowed
     else {
       return res.status(405).json({ message: 'Method not allowed' });
     }
