@@ -800,7 +800,6 @@ Create a new course (system admin only).
   "name": "Computer Science 2023",
   "code": "CS2023",
   "description": "Computer Science course for 2023 academic year",
-  "courseAdminId": "admin-user-id"
 }
 ```
 
