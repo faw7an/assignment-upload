@@ -23,7 +23,15 @@ export default async function handler(
     // GET: List assignments
     if (req.method === 'GET') {
       // Extract query parameters for filtering
-      const { unitId, title, courseId } = req.query;
+      const { 
+        unitId, 
+        title, 
+        courseId, 
+        description, 
+        dueBefore, 
+        dueAfter,
+        status 
+      } = req.query;
       
       // Build where clause based on query parameters
       let whereClause: any = {};
@@ -36,6 +44,46 @@ export default async function handler(
         whereClause.title = {
           contains: title as string,
         };
+      }
+
+      if (description) {
+        whereClause.description = {
+          contains: description as string,
+        };
+      }
+      
+      // Handle date filters
+      const dateFilters: any = {};
+      
+      if (dueBefore) {
+        dateFilters.lt = new Date(dueBefore as string);
+      }
+      
+      if (dueAfter) {
+        dateFilters.gt = new Date(dueAfter as string);
+      }
+      
+      if (Object.keys(dateFilters).length > 0) {
+        whereClause.dueDate = dateFilters;
+      }
+      
+      // Handle status filter
+      if (status) {
+        const now = new Date();
+        
+        if (status === 'upcoming') {
+          // Due date is in the future
+          whereClause.dueDate = { 
+            ...(whereClause.dueDate || {}), 
+            gt: now 
+          };
+        } else if (status === 'past') {
+          // Due date is in the past
+          whereClause.dueDate = { 
+            ...(whereClause.dueDate || {}), 
+            lt: now 
+          };
+        }
       }
       
       // For regular students, only show assignments from enrolled courses
@@ -186,7 +234,7 @@ export default async function handler(
       
       // Check if user is system admin or course admin
       const isSystemAdmin = decoded.role === 'ADMIN';
-      const isCourseAdmin = unit.course.courseAdminId === decoded.userId;
+      const isCourseAdmin = unit.course?.courseAdminId === decoded.userId;
       
       if (!isSystemAdmin && !isCourseAdmin) {
         return res.status(403).json({ 

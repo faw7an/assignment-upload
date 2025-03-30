@@ -26,13 +26,31 @@ export default async function handler(
     const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
     
     // Extract query parameters for filtering
-    const { courseId } = req.query;
+    const { courseId, code, name, description } = req.query;
     
     // Build where clause based on query parameters
     let whereClause: any = {};
     
     if (courseId) {
       whereClause.courseId = courseId as string;
+    }
+    
+    if (code) {
+      whereClause.code = {
+        contains: code as string,
+      };
+    }
+    
+    if (name) {
+      whereClause.name = {
+        contains: name as string,
+      };
+    }
+    
+    if (description) {
+      whereClause.description = {
+        contains: description as string,
+      };
     }
     
     // For regular students, only show units from enrolled courses
@@ -92,6 +110,11 @@ export default async function handler(
                 username: true
               }
             }
+          }
+        },
+        _count: {
+          select: {
+            assignments: true
           }
         }
       },

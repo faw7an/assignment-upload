@@ -25,7 +25,38 @@ export default async function handler(
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
     
+    // Extract query parameters for filtering
+    const { name, code, adminId, enrolledOnly } = req.query;
+    
+    // Build where clause based on query parameters
+    let whereClause: any = {};
+    
+    if (name) {
+      whereClause.name = {
+        contains: name as string,
+      };
+    }
+    
+    if (code) {
+      whereClause.code = {
+        contains: code as string,
+      };
+    }
+    
+    if (adminId) {
+      whereClause.courseAdminId = adminId as string;
+    }
+    
+    // If enrolledOnly=true, only show courses where the user is enrolled or is admin
+    if (enrolledOnly === 'true' && decoded.role !== 'ADMIN') {
+      whereClause.OR = [
+        { courseAdminId: decoded.userId },
+        { enrolledStudents: { some: { userId: decoded.userId } } }
+      ];
+    }
+    
     const courses = await prisma.course.findMany({
+      where: whereClause,
       include: {
         courseAdmin: {
           select: {
