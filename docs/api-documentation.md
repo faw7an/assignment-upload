@@ -166,11 +166,17 @@ Reset password using a valid token.
 
 ### List Units
 
-Get a list of all units.
+Get a list of all units with optional filtering.
 
 - **URL**: `/api/dashboard/units`
 - **Method**: `GET`
 - **Authentication**: Required
+
+**Query Parameters**:
+- `courseId` (optional) - Filter units by course ID
+- `code` (optional) - Filter units by code (contains)
+- `name` (optional) - Filter units by name (contains)
+- `description` (optional) - Filter units by description (contains)
 
 **Response**:
 ```json
@@ -182,7 +188,19 @@ Get a list of all units.
       "name": "Introduction to Computer Science",
       "description": "Foundational concepts in computer science",
       "createdAt": "2023-04-10T12:00:00Z",
-      "updatedAt": "2023-04-10T12:00:00Z"
+      "updatedAt": "2023-04-10T12:00:00Z",
+      "course": {
+        "id": "course-uuid",
+        "name": "Computer Science 2023",
+        "code": "CS2023",
+        "courseAdmin": {
+          "id": "admin-id",
+          "username": "adminuser"
+        }
+      },
+      "_count": {
+        "assignments": 5
+      }
     },
     ...
   ]
@@ -192,6 +210,7 @@ Get a list of all units.
 **Status Codes**:
 - `200 OK`: Units retrieved successfully
 - `401 Unauthorized`: Authentication required
+- `403 Forbidden`: You do not have access to this course
 - `500 Internal Server Error`: Server error
 
 ### Create Unit
@@ -349,6 +368,10 @@ Get a list of all assignments with optional filtering.
 - `unitId` (optional) - Filter assignments by unit ID
 - `title` (optional) - Filter assignments by title (contains)
 - `courseId` (optional) - Filter assignments by course ID
+- `description` (optional) - Filter assignments by description (contains)
+- `dueBefore` (optional) - Filter assignments due before a specific date (ISO format)
+- `dueAfter` (optional) - Filter assignments due after a specific date (ISO format)
+- `status` (optional) - Filter by status: 'upcoming' (due in future) or 'past' (due date passed)
 
 **Response**:
 ```json
@@ -699,11 +722,17 @@ Delete a submission (admin or owner).
 
 ### List Courses
 
-Get a list of all courses.
+Get a list of all courses with optional filtering.
 
 - **URL**: `/api/dashboard/courses`
 - **Method**: `GET`
 - **Authentication**: Required
+
+**Query Parameters**:
+- `name` (optional) - Filter courses by name (contains)
+- `code` (optional) - Filter courses by code (contains)
+- `adminId` (optional) - Filter courses by admin user ID
+- `enrolledOnly` (optional) - Set to 'true' to only show courses where the current user is enrolled or is the admin
 
 **Response**:
 ```json
@@ -720,9 +749,10 @@ Get a list of all courses.
         "id": "admin-user-id",
         "username": "professorsmith"
       },
+      "isCurrentUserAdmin": true,
       "_count": {
-        "students": 25,
-        "units": 5
+        "enrolledStudents": 25,
+        "courseUnits": 5
       }
     },
     ...
