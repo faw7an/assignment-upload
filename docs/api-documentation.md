@@ -348,6 +348,7 @@ Get a list of all assignments with optional filtering.
 **Query Parameters**:
 - `unitId` (optional) - Filter assignments by unit ID
 - `title` (optional) - Filter assignments by title (contains)
+- `courseId` (optional) - Filter assignments by course ID
 
 **Response**:
 ```json
@@ -364,7 +365,12 @@ Get a list of all assignments with optional filtering.
       "unit": {
         "id": 1,
         "code": "CS101",
-        "name": "Introduction to Computer Science"
+        "name": "Introduction to Computer Science",
+        "course": {
+          "id": "course-uuid",
+          "name": "Computer Science 2023",
+          "code": "CS2023"
+        }
       },
       "_count": {
         "submissions": 5
@@ -378,15 +384,16 @@ Get a list of all assignments with optional filtering.
 **Status Codes**:
 - `200 OK`: Assignments retrieved successfully
 - `401 Unauthorized`: Authentication required
+- `403 Forbidden`: You do not have access to this course/unit
 - `500 Internal Server Error`: Server error
 
 ### Create Assignment
 
-Create a new assignment (admin only).
+Create a new assignment (system admin or course admin only).
 
 - **URL**: `/api/dashboard/assignments`
 - **Method**: `POST`
-- **Authentication**: Required (Admin)
+- **Authentication**: Required (Admin or Course Admin)
 
 **Request Body**:
 ```json
@@ -418,7 +425,7 @@ Create a new assignment (admin only).
 - `201 Created`: Assignment created successfully
 - `400 Bad Request`: Missing required fields
 - `401 Unauthorized`: Authentication required
-- `403 Forbidden`: Access denied (not admin)
+- `403 Forbidden`: Access denied (not system admin or course admin)
 - `404 Not Found`: Unit not found
 - `500 Internal Server Error`: Server error
 
@@ -470,11 +477,11 @@ Get details of a specific assignment.
 
 ### Update Assignment
 
-Update an existing assignment (admin only).
+Update an existing assignment (system admin or course admin only).
 
 - **URL**: `/api/dashboard/assignments/{id}`
 - **Method**: `PUT`
-- **Authentication**: Required (Admin)
+- **Authentication**: Required (Admin or Course Admin)
 
 **Path Parameters**:
 - `id` - Assignment ID
@@ -509,17 +516,17 @@ Update an existing assignment (admin only).
 - `200 OK`: Assignment updated successfully
 - `400 Bad Request`: Missing required fields
 - `401 Unauthorized`: Authentication required
-- `403 Forbidden`: Access denied (not admin)
+- `403 Forbidden`: Access denied (not system admin or course admin)
 - `404 Not Found`: Assignment not found or Unit not found
 - `500 Internal Server Error`: Server error
 
 ### Delete Assignment
 
-Delete an assignment (admin only).
+Delete an assignment (system admin or course admin only).
 
 - **URL**: `/api/dashboard/assignments/{id}`
 - **Method**: `DELETE`
-- **Authentication**: Required (Admin)
+- **Authentication**: Required (Admin or Course Admin)
 
 **Path Parameters**:
 - `id` - Assignment ID
@@ -534,7 +541,7 @@ Delete an assignment (admin only).
 **Status Codes**:
 - `200 OK`: Assignment deleted successfully
 - `401 Unauthorized`: Authentication required
-- `403 Forbidden`: Access denied (not admin)
+- `403 Forbidden`: Access denied (not system admin or course admin)
 - `404 Not Found`: Assignment not found
 - `500 Internal Server Error`: Server error
 
@@ -703,11 +710,16 @@ Get a list of all courses.
 {
   "courses": [
     {
-      "id": 1,
+      "id": "course-uuid",
       "name": "Computer Science 2023",
+      "code": "CS2023",
       "description": "Computer Science course for 2023 academic year",
       "createdAt": "2023-04-10T12:00:00Z",
       "updatedAt": "2023-04-10T12:00:00Z",
+      "courseAdmin": {
+        "id": "admin-user-id",
+        "username": "professorsmith"
+      },
       "_count": {
         "students": 25,
         "units": 5
@@ -738,11 +750,16 @@ Get details of a specific course.
 ```json
 {
   "course": {
-    "id": 1,
+    "id": "course-uuid",
     "name": "Computer Science 2023",
+    "code": "CS2023",
     "description": "Computer Science course for 2023 academic year",
     "createdAt": "2023-04-10T12:00:00Z",
     "updatedAt": "2023-04-10T12:00:00Z",
+    "courseAdmin": {
+      "id": "admin-user-id",
+      "username": "professorsmith"
+    },
     "units": [
       {
         "id": 1,
@@ -753,7 +770,7 @@ Get details of a specific course.
     ],
     "students": [
       {
-        "id": 1,
+        "id": "user-uuid",
         "username": "johndoe",
         "email": "john@example.com"
       },
@@ -771,9 +788,9 @@ Get details of a specific course.
 
 ### Create Course
 
-Create a new course (admin only).
+Create a new course (system admin only).
 
-- **URL**: `/api/dashboard/courses`
+- **URL**: `/api/dashboard/courses/create`
 - **Method**: `POST`
 - **Authentication**: Required (Admin)
 
@@ -781,7 +798,9 @@ Create a new course (admin only).
 ```json
 {
   "name": "Computer Science 2023",
-  "description": "Computer Science course for 2023 academic year"
+  "code": "CS2023",
+  "description": "Computer Science course for 2023 academic year",
+  "courseAdminId": "admin-user-id"
 }
 ```
 
@@ -790,9 +809,11 @@ Create a new course (admin only).
 {
   "message": "Course created successfully",
   "course": {
-    "id": 1,
+    "id": "course-uuid",
     "name": "Computer Science 2023",
+    "code": "CS2023",
     "description": "Computer Science course for 2023 academic year",
+    "courseAdminId": "admin-user-id",
     "createdAt": "2023-04-10T12:00:00Z",
     "updatedAt": "2023-04-10T12:00:00Z"
   }
@@ -801,18 +822,18 @@ Create a new course (admin only).
 
 **Status Codes**:
 - `201 Created`: Course created successfully
-- `400 Bad Request`: Missing required fields
+- `400 Bad Request`: Missing required fields or invalid course admin
 - `401 Unauthorized`: Authentication required
-- `403 Forbidden`: Access denied (not admin)
+- `403 Forbidden`: Access denied (not system admin)
 - `500 Internal Server Error`: Server error
 
 ### Update Course
 
-Update an existing course (admin only).
+Update an existing course (system admin or course admin only).
 
 - **URL**: `/api/dashboard/courses/{id}`
 - **Method**: `PUT`
-- **Authentication**: Required (Admin)
+- **Authentication**: Required (Admin or Course Admin)
 
 **Path Parameters**:
 - `id` - Course ID
@@ -821,7 +842,9 @@ Update an existing course (admin only).
 ```json
 {
   "name": "Computer Science Fundamentals 2023",
-  "description": "Updated description for CS course"
+  "code": "CSF2023",
+  "description": "Updated description for CS course",
+  "courseAdminId": "new-admin-user-id"
 }
 ```
 
@@ -830,9 +853,11 @@ Update an existing course (admin only).
 {
   "message": "Course updated successfully",
   "course": {
-    "id": 1,
+    "id": "course-uuid",
     "name": "Computer Science Fundamentals 2023",
+    "code": "CSF2023",
     "description": "Updated description for CS course",
+    "courseAdminId": "new-admin-user-id",
     "createdAt": "2023-04-10T12:00:00Z",
     "updatedAt": "2023-04-10T13:00:00Z"
   }
@@ -841,15 +866,15 @@ Update an existing course (admin only).
 
 **Status Codes**:
 - `200 OK`: Course updated successfully
-- `400 Bad Request`: Missing required fields
+- `400 Bad Request`: Missing required fields or invalid course admin
 - `401 Unauthorized`: Authentication required
-- `403 Forbidden`: Access denied (not admin)
+- `403 Forbidden`: Access denied (not system admin or course admin)
 - `404 Not Found`: Course not found
 - `500 Internal Server Error`: Server error
 
 ### Delete Course
 
-Delete a course (admin only).
+Delete a course (system admin only).
 
 - **URL**: `/api/dashboard/courses/{id}`
 - **Method**: `DELETE`
@@ -869,7 +894,7 @@ Delete a course (admin only).
 - `200 OK`: Course deleted successfully
 - `400 Bad Request`: Cannot delete course with enrolled students or units
 - `401 Unauthorized`: Authentication required
-- `403 Forbidden`: Access denied (not admin)
+- `403 Forbidden`: Access denied (not system admin)
 - `404 Not Found`: Course not found
 - `500 Internal Server Error`: Server error
 
