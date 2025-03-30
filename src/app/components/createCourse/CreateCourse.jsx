@@ -29,7 +29,7 @@ function CreateCourse({ isOpen, onClose, token, onCourseCreated }) {
     };
 
     try {
-      const response = await axios.post("/api/dashboard/courses", requestBody, {
+      const response = await axios.post("/api/dashboard/courses/create", requestBody, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

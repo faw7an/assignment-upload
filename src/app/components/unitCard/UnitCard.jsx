@@ -2,47 +2,38 @@
 import { React, useState, useEffect } from "react";
 import axios from "axios";
 
-
 function UnitCard({
   unitId,
   unitCode,
   unitName,
   unitDescription,
   token,
-  onUnitDelete
+  onUnitDelete,
 }) {
-  
-  const deleteUnit = async ()=>{
-    if(!token){
+  const deleteUnit = async () => {
+    if (!token) {
       console.log("Failed to delete unit no token found.");
       return;
     }
 
-    try{
-      const response = await axios.delete(
-        `/api/dashboard/units/${unitId}`,
-      {
-        headers:{
-          "Content-Type":"application/json",
-          Authorization:`Bearer ${token}`
-        }
-      }
-      )
+    try {
+      const response = await axios.delete(`/api/dashboard/units/${unitId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log("Unit deleted successfully");
 
-      
-      if(onUnitDelete){
+      if (onUnitDelete) {
         onUnitDelete(unitId);
       }
+    } catch (error) {
+      console.error("Failed to delete unit,", error);
     }
-    catch(error){
-      console.error("Failed to delete unit,",error);
-    }
+  };
 
-  }
-
-  
   return (
     <div className="container grid grid-cols-1 md:grid-cols-3 gap-6 z-0">
       <div className="bg-white min-w-[400px] shadow-md rounded-lg p-6 mb-4">
