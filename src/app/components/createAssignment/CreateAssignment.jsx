@@ -1,165 +1,111 @@
 "use client";
-import React, { useState,useEffect } from "react";
-import Modal from "../modal/Modal";
+import React, { useState } from "react";
 import axios from "axios";
 
+export default function CreateAssignment({ isOpen, onClose, token, unitId }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-function CreateAssignment({ isOpen, onClose, token }) {
-  const [formData, setFormData] = useState({
-    title:"",
-    description:"",
-    dueDate:"",
-    unitId:""
-  });
-
-  const [error,setError] = useState(null);
-  const [success,setSuccess] = useState(null);
-
-  const handleInputChange = (e)=>{
-    const {name,value} = e.target;
-    setFormData({ ...formData, [name]: value})
-  };
-
-  const handleFormSubmit = async (e)=>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    // prep req body 
-    const requestBody = {
-      title: formData.title,
-      description: formData.description,
-      dueDate:formData.dueDate,
-      unitId:formData.unitId
-    };
+    if (!title) {
+      setError("Title is required");
+      setLoading(false);
+      return;
+    }
 
-    try{
+    try {
       const response = await axios.post(
         "/api/dashboard/assignments",
-        requestBody,
+        {
+          title,
+          description,
+          unitId,
+          dueDate: dueDate || null,
+        },
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization:`Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      setSuccess("Assignment created successfully");
-      setError(null);
-      console.log("Assignment created successfully");
-      // reset form data
-      setFormData({
-        title:"",
-        description:"",
-        dueDate:"",
-        unitId:"",
-      });
 
-      setTimeout(() => {
-        onClose();
-        setSuccess(null);
-      }, 1200);
-    } catch(error){
-      if(error.response){
-        setError(error.response.data.message || "Failed to create assignment");
-        console.log("Failed to create assignment");
-
-      }else{
-        setError("An error occurred while creating assignment");
-        console.error("Error creating assignment");
-
-      }
-      setSuccess(null);
-
+      console.log("Assignment created:", response.data);
+      setTitle("");
+      setDescription("");
+      setDueDate("");
+      onClose();
+      // Reload the page to show the new assignment
+      window.location.reload();
+    } catch (error) {
+      console.error("Error creating assignment:", error);
+      setError(
+        error.response?.data?.message || "Failed to create assignment"
+      );
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4 text-gray-700">
-        Create New Assignment
-      </h2>
-
+    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+      <h2 className="text-xl font-bold mb-4">Create New Assignment</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      {success && <p className="text-green-500 mb-4">{success}</p>}
-
-      <form onSubmit={handleFormSubmit}>
-        {/* Unit ID */}
+      <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Unit ID
+          <label className="block text-gray-700 mb-2">
+            Title<span className="text-red-500">*</span>
           </label>
-          <input
-            type="number"
-            name="unitId"
-            value={formData.unitId}
-            onChange={handleInputChange}
-            className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter Unit ID"
-            required
-          />
-        </div>
-        {/* Title */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Title</label>
           <input
             type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
-            className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter Assignment Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
             required
           />
         </div>
-
-        {/* Description */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Description
-          </label>
+          <label className="block text-gray-700 mb-2">Description</label>
           <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            className="w-full text-gray-700 border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter Assignment Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
             rows="4"
-            required
           ></textarea>
         </div>
-
-        {/* Due Date */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Due Date
-          </label>
+          <label className="block text-gray-700 mb-2">Due Date</label>
           <input
-            type="date"
-            name="dueDate"
-            value={formData.dueDate}
-            onChange={handleInputChange}
-            className="w-full text-gray-600 border border-gray-300 rounded px-3 py-2"
-            required
+            type="datetime-local"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-2">
           <button
             type="button"
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-            onClick={onClose} // Close the modal
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            disabled={loading}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
           >
-            Create Assignment
+            {loading ? "Creating..." : "Create Assignment"}
           </button>
         </div>
       </form>
-    </Modal>
+    </div>
   );
 }
-
-export default CreateAssignment;

@@ -1,6 +1,7 @@
 "use client";
 import { React, useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 function UnitCard({
   unitId,
@@ -10,6 +11,12 @@ function UnitCard({
   token,
   onUnitDelete,
 }) {
+  const router = useRouter();
+
+  const viewUnit = () => {
+    router.push(`/unit?unitId=${unitId}`);
+  };
+
   const deleteUnit = async () => {
     if (!token) {
       console.log("Failed to delete unit no token found.");
@@ -43,7 +50,10 @@ function UnitCard({
         <p className="text-xl font-bold text-blue-400">{unitName}</p>
         <p className="text-gray-600 mb-4">{unitDescription}</p>
         <div>
-          <button className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          <button 
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={viewUnit}
+          >
             View Unit
           </button>
           <button

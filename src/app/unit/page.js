@@ -30,6 +30,11 @@ export default function UnitPage() {
     setDeployed(deployed.filter(assignment => assignment.id !== deletedId));
   };
 
+  const handleAssignmentCreated = (newAssignment) => {
+    // Add the new assignment to the deployed list
+    setDeployed(prev => [newAssignment, ...prev]);
+  };
+
   useEffect(() => {
     const storeToken = localStorage.getItem("authToken");
     setToken(storeToken);
@@ -130,6 +135,7 @@ export default function UnitPage() {
             onClose={handleModalToggle}
             token={token}
             unitId={unitId}
+            onAssignmentCreated={handleAssignmentCreated}
           />
         </Modal>
       </main>
