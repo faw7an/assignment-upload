@@ -1,9 +1,15 @@
 "use client";
 import axios from "axios";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // Change from next/router to next/navigation
 
 export default function Course({ courseId, courseCode, courseTitle, description, onCourseDeleted }) {
   const [token, setToken] = useState(null);
+  const router = useRouter();
+
+  const route = () => {
+    router.push(`/displayUnit?courseId=${courseId}`);
+  };
 
   useEffect(() => {
     const storeToken = localStorage.getItem("authToken");
@@ -40,7 +46,9 @@ export default function Course({ courseId, courseCode, courseTitle, description,
       <h2 className="text-xl font-bold text-blue-400">{courseTitle}</h2>
       <p className="text-gray-600 mb-4">{description}</p>
       <div className="flex gap-3">
-        <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          onClick={route}
+        >
           View Details
         </button>
         <button

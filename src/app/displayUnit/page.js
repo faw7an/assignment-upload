@@ -25,10 +25,16 @@ function DisplayUnitOverview() {
     const storeToken = localStorage.getItem("authToken");
     setToken(storeToken);
 
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("courseId");
+    if (!courseId) {
+      throw new Error("Course ID is required in the URL parameters.");
+    }
+
     const fetchUnit = async ()=>{
       try{
         const response = await axios.get(
-          "/api/dashboard/units",
+          `/api/dashboard/units?courseId=${courseId}`,
           {
             headers:{
               "Content-Type":"application/json",
