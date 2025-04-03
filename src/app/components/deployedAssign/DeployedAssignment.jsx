@@ -35,8 +35,9 @@ function DeployedAssignment({ id, unit, title, description, dueDate, onAssignmen
   };
 
   return (
+    
     <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-lg font-bold ">{title}</h2>
+      <h2 className="text-lg font-bold">{title}</h2>
       <h3 className="text-md text-gray-600">{unit}</h3>
       <p className="text-gray-600">{description}</p>
       {dueDate && (
