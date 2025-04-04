@@ -34,8 +34,7 @@ function DeployedAssignment({ id, unit, title, description, dueDate, onAssignmen
     }
   };
 
-  return (
-    
+  return (  
     <div className="bg-white p-4 rounded shadow">
       <h2 className="text-lg font-bold">{title}</h2>
       <h3 className="text-md text-gray-600">{unit}</h3>
@@ -51,8 +50,7 @@ function DeployedAssignment({ id, unit, title, description, dueDate, onAssignmen
         </Link>
         <button 
           className="rounded bg-red-600 text-white px-3 py-1"
-          onClick={deleteAssignment}
-        >
+          onClick={deleteAssignment}>
           Delete
         </button>
       </div>
