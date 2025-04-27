@@ -62,7 +62,7 @@ export default function LogIn() {
       setTimeout(() => {
         // Redirect to dashboard
         router.push('/dashboard');
-      }, 1500);
+      }, 150);
       
     } catch (err) {
       setError(err.message);
