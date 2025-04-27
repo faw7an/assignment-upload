@@ -35,15 +35,15 @@ function DeployedAssignment({ id, unit, title, description, dueDate, onAssignmen
   };
 
   return (  
-    <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-lg font-bold">{title}</h2>
+    <div className="bg-white p-4 rounded shadow ">
+      <h2 className="text-lg text-gray-500 font-bold">{title}</h2>
       <h3 className="text-md text-gray-600">{unit}</h3>
       <p className="text-gray-600">{description}</p>
       {dueDate && (
         <p className="text-sm text-gray-500">Due: {new Date(dueDate).toLocaleDateString()}</p>
       )}
       <div className="flex mt-3">
-        <Link href={"/upload"}>
+        <Link href={"#"}>
           <button className="rounded bg-blue-600 text-white px-3 py-1 mr-2">
             Monitor submissions
           </button>
