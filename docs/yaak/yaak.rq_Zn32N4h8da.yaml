@@ -1,0 +1,28 @@
+type: http_request
+model: http_request
+id: rq_Zn32N4h8da
+createdAt: 2025-04-28T22:32:39.376423163
+updatedAt: 2025-04-28T22:32:39.376423961
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "username": "johndoe",
+      "email": "john@example.com",
+      "password": "securepassword"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+method: POST
+name: register
+sortPriority: 0.0
+url: http://localhost:3000/api/auth/register
+urlParameters: []

@@ -1,0 +1,33 @@
+type: http_request
+model: http_request
+id: rq_tFQB2zfybA
+createdAt: 2025-04-28T22:32:39.752611025
+updatedAt: 2025-04-28T22:32:39.752612637
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "title": "Advanced Programming",
+      "description": "Learn advanced programming concepts",
+      "unitId": 1,
+      "dueDate": "2023-06-15T23:59:59Z"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: PUT
+name: update assignment
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/assignments/1
+urlParameters: []

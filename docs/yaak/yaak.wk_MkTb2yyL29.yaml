@@ -1,9 +1,9 @@
 type: workspace
 model: workspace
-id: wk_X2W8hjsgrj
-createdAt: 2025-04-28T21:43:17.080863832
-updatedAt: 2025-04-28T21:43:17.080865770
-name: api
+id: wk_MkTb2yyL29
+createdAt: 2025-04-28T22:32:39.332366965
+updatedAt: 2025-04-28T22:32:39.332367717
+name: assignment
 description: ''
 settingValidateCertificates: true
 settingFollowRedirects: true

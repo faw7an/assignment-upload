@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_u9swJPofF7
+createdAt: 2025-04-28T22:32:40.186462709
+updatedAt: 2025-04-28T22:32:40.186463623
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: '{"currentPassword":"oldpassword","newPassword":"newpassword"}'
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: POST
+name: change password
+sortPriority: 0.0
+url: http://localhost:3000/api/user/change-password
+urlParameters: []

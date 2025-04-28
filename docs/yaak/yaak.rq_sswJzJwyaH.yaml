@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_sswJzJwyaH
+createdAt: 2025-04-28T22:32:40.105675089
+updatedAt: 2025-04-28T22:32:40.105676236
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: '{"courseId":1}'
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: POST
+name: unenroll from course
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/courses/unenroll
+urlParameters: []

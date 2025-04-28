@@ -1,0 +1,22 @@
+type: http_request
+model: http_request
+id: rq_gYNA2gwt7F
+createdAt: 2025-04-28T22:32:39.884079657
+updatedAt: 2025-04-28T22:32:39.884080656
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: DELETE
+name: delete submission
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/submissions/1
+urlParameters: []

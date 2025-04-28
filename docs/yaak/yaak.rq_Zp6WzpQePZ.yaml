@@ -1,0 +1,34 @@
+type: http_request
+model: http_request
+id: rq_Zp6WzpQePZ
+createdAt: 2025-04-28T22:32:39.802275530
+updatedAt: 2025-04-28T22:32:39.802278277
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  form:
+  - enabled: true
+    name: assignmentId
+    value: '2'
+  - enabled: true
+    name: file
+    value:
+    - /home/bethropolis/Documents/assignment.pdf
+bodyType: multipart/form-data
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+- enabled: true
+  name: Content-Type
+  value: multipart/form-data
+  id: null
+method: POST
+name: create submission
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/assignments/submissions
+urlParameters: []

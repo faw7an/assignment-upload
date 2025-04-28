@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_vuaWd6P5Hk
+createdAt: 2025-04-28T22:32:39.405611640
+updatedAt: 2025-04-28T22:32:39.405612575
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "identifier": "johndoe",
+      "password": "securepassword"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+method: POST
+name: login
+sortPriority: 0.0
+url: http://localhost:3000/api/auth/login
+urlParameters: []

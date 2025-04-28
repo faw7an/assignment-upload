@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_CuCMgKGf7T
+createdAt: 2025-04-28T22:32:39.974327347
+updatedAt: 2025-04-28T22:32:39.974330652
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: '{"name":"Computer Science 2023","description":"Computer Science course for 2023 academic year"}'
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: POST
+name: create course
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/courses
+urlParameters: []

@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_kj9ZBnMauD
+createdAt: 2025-04-28T22:32:39.994546437
+updatedAt: 2025-04-28T22:32:39.994547745
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: '{"name":"Computer Science Fundamentals 2023","description":"Updated description for CS course"}'
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: PUT
+name: update course
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/courses/1
+urlParameters: []

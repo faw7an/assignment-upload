@@ -1,0 +1,32 @@
+type: http_request
+model: http_request
+id: rq_FEFp7UL2xm
+createdAt: 2025-04-28T22:32:39.485814544
+updatedAt: 2025-04-28T22:32:39.485816662
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "code": "CS101",
+      "name": "Introduction to Computer Science",
+      "description": "Foundational concepts in computer science"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: POST
+name: create unit
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/units/create
+urlParameters: []

@@ -1,0 +1,22 @@
+type: http_request
+model: http_request
+id: rq_GHoptJoQJ3
+createdAt: 2025-04-28T22:32:39.938295159
+updatedAt: 2025-04-28T22:32:39.938296848
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: GET
+name: get course
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/courses/1
+urlParameters: []

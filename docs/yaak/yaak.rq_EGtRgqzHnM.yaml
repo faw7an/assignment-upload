@@ -1,0 +1,22 @@
+type: http_request
+model: http_request
+id: rq_EGtRgqzHnM
+createdAt: 2025-04-28T22:32:39.579262749
+updatedAt: 2025-04-28T22:32:39.579265029
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: DELETE
+name: delte unit
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/units/1
+urlParameters: []

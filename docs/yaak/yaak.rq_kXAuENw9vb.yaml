@@ -1,0 +1,22 @@
+type: http_request
+model: http_request
+id: rq_kXAuENw9vb
+createdAt: 2025-04-28T22:32:40.028294549
+updatedAt: 2025-04-28T22:32:40.028296029
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: DELETE
+name: delete course
+sortPriority: 0.0
+url: http://localhost:3000/api/dashboard/courses/1
+urlParameters: []

@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_gmmQekNTkU
+createdAt: 2025-04-28T22:32:40.156684090
+updatedAt: 2025-04-28T22:32:40.156688273
+workspaceId: wk_MkTb2yyL29
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: '{"username":"johndoe2","email":"john.doe@example.com"}'
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: null
+- enabled: true
+  name: Authorization
+  value: Bearer YOUR_JWT_TOKEN
+  id: null
+method: PUT
+name: update user profile
+sortPriority: 0.0
+url: http://localhost:3000/api/user/profile
+urlParameters: []
