@@ -63,13 +63,8 @@ function Profile() {
         ref={profileCardRef}
         className={`z-50 w-84 fixed right-5 top-20 text-black flex flex-col items-center justify-center rounded-lg bg-white shadow-lg p-6 transition-opacity duration-300 ${
           isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        {/* <Image
-          src={userDefault}
-          alt="profile"
-          className="w-20 h-20 sm:w-24 sm:h-24 p-1 mb-4 bg-gray-200 rounded-full shadow-md"
-        /> */}
+        }`}>
+          
         <Image
           src={fawzan}
           alt="profile"
