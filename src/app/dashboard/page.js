@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <Profile user={user} />
+      <Profile/>
       <header className="bg-blue-500 text-white py-4 px-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <Nav />
