@@ -10,10 +10,11 @@ import CreateCourse from "../components/createCourse/CreateCourse";
 
 export default function Dashboard() {
   const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCourse, setNewCourse] = useState(null);
+  const [user, setUser] = useState({ username: "" });
 
   const handleModalToggle = () => {
     setIsModalOpen((prev) => !prev);
@@ -31,6 +32,19 @@ export default function Dashboard() {
     const storeToken = localStorage.getItem("authToken");
     setToken(storeToken);
 
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get("/api/user/profile", {
+          headers: {
+            Authorization: `Bearer ${storeToken}`,
+          },
+        });
+        setUser(response.data.user);
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
     const fetchCourses = async () => {
       try {
         const response = await axios.get("/api/dashboard/courses/", {
@@ -47,7 +61,13 @@ export default function Dashboard() {
       }
     };
 
-    fetchCourses();
+    if (storeToken) {
+      fetchUserData();
+      fetchCourses();
+    } else {
+      setLoading(false);
+    }
+    
   }, []);
 
   useEffect(() => {
@@ -61,14 +81,16 @@ export default function Dashboard() {
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
-      <Profile />
+      <Profile user={user} />
       <header className="bg-blue-500 text-white py-4 px-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <Nav />
       </header>
       <main className="flex-grow p-6">
-        <Greetings user="Fauzan" />
-        {courses.length > 0 ? (
+        <Greetings user={user.username || "User"} />
+        {loading ? (
+          <p className="text-gray-600">Loading courses...</p>
+        ) : courses.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {courses.map((course) => (
               <Course
@@ -77,7 +99,7 @@ export default function Dashboard() {
                 courseCode={course.code}
                 courseTitle={course.name}
                 description={course.description}
-                onCourseDeleted={handleCourseDeleted} // Pass the callback
+                onCourseDeleted={handleCourseDeleted}
               />
             ))}
           </div>

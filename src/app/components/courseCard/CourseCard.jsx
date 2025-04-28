@@ -7,8 +7,8 @@ export default function Course({ courseId, courseCode, courseTitle, description,
   const [token, setToken] = useState(null);
   const router = useRouter();
 
-  const route = () => {
-    router.push(`/displayUnit?courseId=${courseId}`);
+  const handleCourseClick = () => {
+    router.push(`/unitList?courseId=${courseId}`);
   };
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function Course({ courseId, courseCode, courseTitle, description,
       <p className="text-gray-600 mb-4">{description}</p>
       <div className="flex gap-3">
         <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={route}
+          onClick={handleCourseClick}
         >
           View Details
         </button>

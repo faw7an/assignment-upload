@@ -72,9 +72,9 @@ export default function LogIn() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded shadow-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Log In</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#f6f9fc] to-[#edf2f7] p-5">
+      <div className="w-full max-w-md md:max-w-lg bg-white p-6 sm:p-8 rounded-3xl shadow-lg">
+        <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-gray-800">Log In</h2>
         
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -89,8 +89,8 @@ export default function LogIn() {
         )}
         
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <div className="mb-5">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-2">
               Email or Username
             </label>
             <input
@@ -98,12 +98,12 @@ export default function LogIn() {
               id="email"
               value={formData.identifier}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition text-gray-600"
               placeholder="Enter your email or username"
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          <div className="mb-6">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-2">
               Password
             </label>
             <input
@@ -111,14 +111,14 @@ export default function LogIn() {
               id="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition text-gray-600"
               placeholder="Enter your password"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full bg-indigo-500 text-white py-3 rounded-xl font-semibold hover:bg-indigo-600 transition hover:-translate-y-0.5 shadow-sm hover:shadow-md ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {loading ? 'Processing...' : 'Log In'}
           </button>
