@@ -1,0 +1,10 @@
+type: workspace
+model: workspace
+id: wk_X2W8hjsgrj
+createdAt: 2025-04-28T21:43:17.080863832
+updatedAt: 2025-04-28T21:43:17.080865770
+name: api
+description: ''
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0

@@ -54,7 +54,7 @@ export default async function handler(
     };
 
     const token = jwt.sign(payload, JWT_SECRET as string, {
-      expiresIn: '1h', 
+      expiresIn: '200h', 
     });
 
 
