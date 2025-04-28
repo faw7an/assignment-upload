@@ -13,8 +13,8 @@ function UnitCard({
 }) {
   const router = useRouter();
 
-  const viewUnit = () => {
-    router.push(`/unit?unitId=${unitId}`);
+  const handleUnitClick = () => {
+    router.push(`/assignmentList?unitId=${unitId}`);
   };
 
   const deleteUnit = async () => {
@@ -42,22 +42,20 @@ function UnitCard({
   };
 
   return (
-    <div className="container grid grid-cols-1 md:grid-cols-3 gap-6 z-0">
-      <div className="bg-white min-w-[400px] shadow-md rounded-lg p-6 mb-4">
-        {/* <h3 className="text-lg font-bold text-gray-800">{courseTitle}</h3> */}
-
-        <h3 className="text-lg font-bold text-gray-400">{unitCode}</h3>
-        <p className="text-xl font-bold text-blue-400">{unitName}</p>
-        <p className="text-gray-600 mb-4">{unitDescription}</p>
-        <div>
+    <div className="w-full">
+      <div className="max-w-[450px] bg-white shadow-md rounded-lg p-4 mb-4">
+        <h3 className="text-base sm:text-lg font-bold text-gray-400">{unitCode}</h3>
+        <p className="text-lg sm:text-xl font-bold text-blue-400">{unitName}</p>
+        <p className="text-sm sm:text-base text-gray-600 mb-4 flex-grow">{unitDescription}</p>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-auto">
           <button 
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            onClick={viewUnit}
+            className="w-full sm:w-auto bg-blue-500 text-white px-3 py-2 text-sm sm:text-base rounded hover:bg-blue-600 transition-colors"
+            onClick={handleUnitClick}
           >
             View Unit
           </button>
           <button
-            className="bg-red-600 mx-4 text-white px-4 py-2 rounded hover:bg-red-700"
+            className="w-full sm:w-auto bg-red-600 text-white px-3 py-2 text-sm sm:text-base rounded hover:bg-red-700 transition-colors"
             onClick={deleteUnit}
           >
             Delete Unit

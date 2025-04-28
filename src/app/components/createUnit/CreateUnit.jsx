@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "../modal/Modal";
 
 function CreateUnit({ isOpen, onClose, token }) {
@@ -7,26 +7,41 @@ function CreateUnit({ isOpen, onClose, token }) {
     code: "",
     name: "",
     description: "",
+    courseId: "",
   });
 
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  useEffect(() => {
+    // Get courseId from URL parameters when component mounts
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("courseId");
+  if (courseId) {
+      setFormData((prev) => ({ ...prev, courseId }));
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  
-
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if courseId exists
+    if (!formData.courseId) {
+      setError("Course ID is required");
+      return;
+    }
 
     // Prepare the request body
     const requestBody = {
       code: formData.code,
       name: formData.name,
       description: formData.description,
+      courseId: formData.courseId,
     };
 
     try {
@@ -48,6 +63,7 @@ function CreateUnit({ isOpen, onClose, token }) {
           code: "",
           name: "",
           description: "",
+          courseId: "",
         });
 
         setTimeout(() => {
@@ -75,6 +91,9 @@ function CreateUnit({ isOpen, onClose, token }) {
       {success && <p className="text-green-500 mb-4">{success}</p>}
 
       <form onSubmit={handleFormSubmit}>
+        {/* Hidden Course ID field */}
+        <input type="hidden" name="courseId" value={formData.courseId} />
+
         {/* Code */}
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2">Code</label>

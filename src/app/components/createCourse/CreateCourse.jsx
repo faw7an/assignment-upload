@@ -54,7 +54,7 @@ function CreateCourse({ isOpen, onClose, token, onCourseCreated }) {
       setTimeout(() => {
         onClose();
         setSuccess(null);
-      }, 1200);
+      }, 1000);
     } catch (error) {
       if (error.response) {
         setError(error.response.data.message || "Failed to create course");
