@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/prisma'
 import { NextApiRequest, NextApiResponse } from 'next'
 import crypto from 'crypto'
 
-const prisma = new PrismaClient()
 const RESET_TOKEN_EXPIRY = 3600;
 
 export default async function handler(

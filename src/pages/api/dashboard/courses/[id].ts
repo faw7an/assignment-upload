@@ -1,20 +1,41 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Validation schema for course updates
+const courseUpdateSchema = z.object({
+  name: z.string().min(1, 'Course name is required').optional(),
+  code: z.string().min(1, 'Course code is required').optional(),
+  description: z.string().optional().nullable(),
+});
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Verify authorization
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(' ')[1];
+  // Extract user ID and role from headers or token
+  let userId = req.headers['x-user-id'] as string;
+  let userRole = req.headers['x-user-role'] as string;
 
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication required' });
+  // Fallback to token if middleware headers are not available
+  if (!userId || !userRole) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
+      userId = decoded.userId;
+      userRole = decoded.role;
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
   }
 
   // Extract course ID from URL
@@ -25,9 +46,6 @@ export default async function handler(
   }
 
   try {
-    // Verify JWT token
-    const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
-
     // Check if course exists
     const course = await prisma.course.findUnique({
       where: { id: id as string },
@@ -46,14 +64,14 @@ export default async function handler(
       return res.status(404).json({ message: 'Course not found' });
     }
 
-    // Check if user is system admin or course admin
-    const isSystemAdmin = decoded.role === 'ADMIN';
-    const isCourseAdmin = course.courseAdminId === decoded.userId;
+    // Define permission checks based on new role system
+    const isSuperAdmin = userRole === 'SUPER_ADMIN';
+    const isCourseAdmin = userRole === 'ADMIN' && course.courseAdminId === userId;
 
     // GET: Fetch course details
     if (req.method === 'GET') {
       // Include additional information for admins
-      if (isSystemAdmin || isCourseAdmin) {
+      if (isSuperAdmin || isCourseAdmin) {
         const fullCourse = await prisma.course.findUnique({
           where: { id: id as string },
           include: {
@@ -85,50 +103,60 @@ export default async function handler(
       return res.status(200).json({ course });
     }
     
-    // PUT: Update course (admin or course admin only)
+    // PUT: Update course (super_admin or course admin only)
     else if (req.method === 'PUT') {
-      if (!isSystemAdmin && !isCourseAdmin) {
+      // --- Permission Check ---
+      if (!isSuperAdmin && !isCourseAdmin) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can update courses.' 
+          message: 'Access Denied: Only Super Admins or the Course Admin can update this course.' 
         });
       }
+      // --- End Permission Check ---
 
-      const { name, code, description } = req.body;
-      
-      // If changing code, check it's not already taken
-      if (code && code !== course.code) {
-        const existingCourse = await prisma.course.findUnique({
-          where: { code }
+      try {
+        // Validate input using Zod
+        const validatedData = courseUpdateSchema.parse(req.body);
+        const { name, code, description } = validatedData;
+        
+        // If changing code, check uniqueness
+        if (code && code !== course.code) {
+          const existingCourse = await prisma.course.findUnique({ where: { code } });
+          if (existingCourse) {
+            return res.status(409).json({ message: 'Course with this code already exists' });
+          }
+        }
+
+        const updatedCourse = await prisma.course.update({
+          where: { id: id as string },
+          data: {
+            // Only update fields that are provided
+            ...(name !== undefined && { name }),
+            ...(code !== undefined && { code }),
+            ...(description !== undefined && { description }),
+          },
         });
         
-        if (existingCourse) {
-          return res.status(409).json({ message: 'Course with this code already exists' });
+        return res.status(200).json({
+          message: 'Course updated successfully',
+          course: updatedCourse,
+        });
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ errors: error.errors });
         }
+        throw error; // Re-throw for outer catch block
       }
-      
-      // Update the course
-      const updatedCourse = await prisma.course.update({
-        where: { id: id as string },
-        data: {
-          name: name || course.name,
-          code: code || course.code,
-          description: description !== undefined ? description : course.description,
-        },
-      });
-      
-      return res.status(200).json({
-        message: 'Course updated successfully',
-        course: updatedCourse,
-      });
     }
     
-    // DELETE: Remove course (system admin or course admin only)
+    // DELETE: Remove course (super_admin or course admin only)
     else if (req.method === 'DELETE') {
-      if (!isSystemAdmin && !isCourseAdmin) {
+      // --- Permission Check ---
+      if (!isSuperAdmin && !isCourseAdmin) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can delete courses.' 
+          message: 'Access Denied: Only Super Admins or the Course Admin can delete this course.' 
         });
       }
+      // --- End Permission Check ---
       
       // Delete the course
       await prisma.course.delete({
@@ -150,7 +178,5 @@ export default async function handler(
       return res.status(401).json({ message: 'Invalid token' });
     }
     return res.status(500).json({ message: 'Internal server error' });
-  } finally {
-    await prisma.$disconnect();
   }
 }

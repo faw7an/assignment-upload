@@ -1,25 +1,45 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Validation schema for assignment creation
+const createAssignmentSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional().nullable(),
+  unitId: z.number().int().positive('Unit ID must be a positive integer'),
+  dueDate: z.string().optional().nullable().transform(val => val ? new Date(val) : null)
+});
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(' ')[1];
+  // Extract user ID and role from headers or token
+  let userId = req.headers['x-user-id'] as string;
+  let userRole = req.headers['x-user-role'] as string;
 
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication required' });
+  // Fallback to token if middleware headers are not available
+  if (!userId || !userRole) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
+      userId = decoded.userId;
+      userRole = decoded.role;
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
   }
 
   try {
-    // Verify JWT token
-    const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
-
     // GET: List assignments
     if (req.method === 'GET') {
       // Extract query parameters for filtering
@@ -87,20 +107,21 @@ export default async function handler(
       }
       
       // For regular students, only show assignments from enrolled courses
-      const isSystemAdmin = decoded.role === 'ADMIN';
+      const isSuperAdmin = userRole === 'SUPER_ADMIN';
+      const isAdmin = userRole === 'ADMIN';
       
-      if (!isSystemAdmin) {
+      if (!isSuperAdmin && !isAdmin) {
         // Get all courses where the user is enrolled or is the admin
         const userCourses = await prisma.course.findMany({
           where: {
             OR: [
               {
-                courseAdminId: decoded.userId,
+                courseAdminId: userId,
               },
               {
                 enrolledStudents: {
                   some: {
-                    userId: decoded.userId,
+                    userId: userId,
                   },
                 },
               },
@@ -177,6 +198,47 @@ export default async function handler(
             };
           }
         }
+      } else if (isAdmin && !isSuperAdmin) {
+        // If user is ADMIN (but not SUPER_ADMIN), only show assignments from their courses
+        const adminCourses = await prisma.course.findMany({
+          where: {
+            courseAdminId: userId
+          },
+          select: {
+            id: true
+          }
+        });
+        
+        const adminCourseIds = adminCourses.map(course => course.id);
+        
+        // Get all units from admin's courses
+        const adminUnits = await prisma.unit.findMany({
+          where: {
+            courseId: {
+              in: adminCourseIds
+            }
+          },
+          select: {
+            id: true
+          }
+        });
+        
+        const adminUnitIds = adminUnits.map(unit => unit.id);
+        
+        // If specific unitId is requested, make sure it belongs to one of admin's courses
+        if (unitId) {
+          const unitIdNum = parseInt(unitId as string);
+          if (!adminUnitIds.includes(unitIdNum)) {
+            return res.status(403).json({
+              message: 'You do not have access to this unit.'
+            });
+          }
+        } else {
+          // Filter by all units in admin's courses
+          whereClause.unitId = {
+            in: adminUnitIds
+          };
+        }
       }
       
       // Fetch assignments with filters
@@ -213,49 +275,54 @@ export default async function handler(
     
     // POST: Create a new assignment (admin or course admin only)
     else if (req.method === 'POST') {
-      const { title, description, unitId, dueDate } = req.body;
-      
-      // Validate required fields
-      if (!title || !unitId) {
-        return res.status(400).json({ message: 'Title and unit ID are required' });
-      }
-      
-      // Check if unit exists and get its course
-      const unit = await prisma.unit.findUnique({
-        where: { id: parseInt(unitId) },
-        include: {
-          course: true
-        }
-      });
-      
-      if (!unit) {
-        return res.status(404).json({ message: 'Unit not found' });
-      }
-      
-      // Check if user is system admin or course admin
-      const isSystemAdmin = decoded.role === 'ADMIN';
-      const isCourseAdmin = unit.course?.courseAdminId === decoded.userId;
-      
-      if (!isSystemAdmin && !isCourseAdmin) {
-        return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can create assignments.' 
+      try {
+        // Validate input using Zod
+        const validatedData = createAssignmentSchema.parse({
+          ...req.body,
+          unitId: parseInt(req.body.unitId)
         });
+        
+        const { title, description, unitId, dueDate } = validatedData;
+        
+        // --- Permission Check ---
+        const unit = await prisma.unit.findUnique({
+          where: { id: unitId },
+          include: { course: true }
+        });
+        
+        if (!unit || !unit.course) {
+          return res.status(404).json({ message: 'Target unit or its associated course not found' });
+        }
+
+        const isSuperAdmin = userRole === 'SUPER_ADMIN';
+        const isCourseAdmin = userRole === 'ADMIN' && unit.course.courseAdminId === userId;
+
+        if (!isSuperAdmin && !isCourseAdmin) {
+          return res.status(403).json({ message: 'Access Denied: Only Super Admins or the relevant Course Admin can create assignments.' });
+        }
+        // --- End Permission Check ---
+
+        // Create the assignment
+        const assignment = await prisma.assignment.create({
+          data: {
+            title,
+            description: description || null,
+            unitId: unitId,
+            dueDate: dueDate,
+          },
+        });
+        
+        return res.status(201).json({
+          message: 'Assignment created successfully',
+          assignment,
+        });
+      } catch (error) {
+        console.error('Create Assignment Error:', error);
+        if (error instanceof z.ZodError) {
+          return res.status(400).json({ errors: error.errors });
+        }
+        throw error; // Re-throw for the outer catch block
       }
-      
-      // Create the assignment
-      const assignment = await prisma.assignment.create({
-        data: {
-          title,
-          description: description || null,
-          unitId: parseInt(unitId),
-          dueDate: dueDate ? new Date(dueDate) : null,
-        },
-      });
-      
-      return res.status(201).json({
-        message: 'Assignment created successfully',
-        assignment,
-      });
     }
     
     // Other methods not allowed
@@ -268,7 +335,5 @@ export default async function handler(
       return res.status(401).json({ message: 'Invalid token' });
     }
     return res.status(500).json({ message: 'Internal server error' });
-  } finally {
-    await prisma.$disconnect();
   }
 }

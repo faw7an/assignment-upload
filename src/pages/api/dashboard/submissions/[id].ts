@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export default async function handler(
@@ -58,7 +57,7 @@ export default async function handler(
 
     // Check if user has permission to access this submission
     const isSystemAdmin = decoded.role === 'ADMIN';
-    const isCourseAdmin = submission.assignment.unit.course.courseAdminId === decoded.userId;
+    const isCourseAdmin = submission.assignment.unit.course && submission.assignment.unit.course.courseAdminId === decoded.userId;
     const isSubmissionOwner = submission.studentId === decoded.userId;
 
     if (!isSystemAdmin && !isCourseAdmin && !isSubmissionOwner) {

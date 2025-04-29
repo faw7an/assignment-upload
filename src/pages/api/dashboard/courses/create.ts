@@ -1,9 +1,16 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Validation schema using Zod
+const courseSchema = z.object({
+  code: z.string().min(1, 'Course code is required'),
+  name: z.string().min(1, 'Course name is required'),
+  description: z.string().optional().nullable(),
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,55 +20,60 @@ export default async function handler(
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  // Extract token from Authorization header
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(' ')[1];
+  // Extract token from Authorization header or use X-User headers from middleware
+  let userId = req.headers['x-user-id'] as string;
+  let userRole = req.headers['x-user-role'] as string;
 
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
+  // Fallback to token if middleware headers are not available
+  if (!userId || !userRole) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
 
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
-    
-    const { code, name, description } = req.body;
-
-    // Validate input
-    if (!code || !name) {
-      return res.status(400).json({ message: 'Course code and name are required' });
+    if (!token) {
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
-    // Check if course with this code already exists
-    const existingCourse = await prisma.course.findUnique({
-      where: { code },
-    });
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
+      userId = decoded.userId;
+      userRole = decoded.role;
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+  }
 
+  // --- Permission Check ---
+  if (userRole !== 'SUPER_ADMIN') {
+    return res.status(403).json({ message: 'Access Denied: Only Super Admins can create courses.' });
+  }
+  // --- End Permission Check ---
+
+  try {
+    // Validate input using Zod
+    const validatedData = courseSchema.parse(req.body);
+    const { code, name, description } = validatedData;
+
+    // Check existence (good practice even with unique constraint)
+    const existingCourse = await prisma.course.findUnique({ where: { code } });
     if (existingCourse) {
       return res.status(409).json({ message: 'Course with this code already exists' });
     }
 
-    // Create the course with the authenticated user as the course admin
     const course = await prisma.course.create({
       data: {
         code,
         name,
         description: description || null,
-        courseAdminId: decoded.userId
+        courseAdminId: userId // Assign creator as initial admin
       },
     });
 
-    return res.status(201).json({
-      message: 'Course created successfully',
-      course,
-    });
+    return res.status(201).json({ message: 'Course created successfully', course });
   } catch (error) {
     console.error('Create Course Error:', error);
-    if ((error as Error).name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: 'Invalid token' });
+    if (error instanceof z.ZodError) { // Handle validation errors
+      return res.status(400).json({ errors: error.errors });
     }
     return res.status(500).json({ message: 'Internal server error' });
-  } finally {
-    await prisma.$disconnect();
   }
 }

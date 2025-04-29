@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/prisma'
 import bcrypt from 'bcrypt'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-const prisma = new PrismaClient()
 const SALT_ROUNDS = 12
 
 export default async function handler(

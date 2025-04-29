@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import prisma from '@/lib/prisma';
 
 // Disable the default body parser to handle file uploads
 export const config = {
@@ -12,7 +12,6 @@ export const config = {
   },
 };
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
@@ -75,15 +74,19 @@ export default async function handler(
       
       // For regular students (not admin), check if they're enrolled in the course
       const isSystemAdmin = decoded.role === 'ADMIN';
-      const isCourseAdmin = assignment.unit.course.courseAdminId === decoded.userId;
+      const isCourseAdmin = assignment.unit.course && assignment.unit.course.courseAdminId === decoded.userId;
       
       if (!isSystemAdmin && !isCourseAdmin) {
         // Check if student is enrolled in the course
+        const courseId = assignment.unit.course ? assignment.unit.course.id : undefined;
+        if (!courseId) {
+          return res.status(403).json({ message: 'Course information missing for this assignment.' });
+        }
         const enrollment = await prisma.userCourse.findUnique({
           where: {
             userId_courseId: {
               userId: decoded.userId,
-              courseId: assignment.unit.course.id,
+              courseId,
             },
           },
         });
@@ -179,7 +182,7 @@ export default async function handler(
       
       // Check if user is system admin, course admin, or the student viewing their own submissions
       const isSystemAdmin = decoded.role === 'ADMIN';
-      const isCourseAdmin = assignment.unit.course.courseAdminId === decoded.userId;
+      const isCourseAdmin = assignment.unit.course && assignment.unit.course.courseAdminId === decoded.userId;
       
       // For regular students, only allow viewing their own submissions
       // For course admins and system admins, allow viewing all submissions

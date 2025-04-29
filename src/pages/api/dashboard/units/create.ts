@@ -1,9 +1,17 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Validation schema using Zod
+const unitSchema = z.object({
+  code: z.string().min(1, 'Unit code is required'),
+  name: z.string().min(1, 'Unit name is required'),
+  description: z.string().optional().nullable(),
+  courseId: z.string().min(1, 'Course ID is required'),
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,72 +21,71 @@ export default async function handler(
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  // Extract token from Authorization header
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.split(' ')[1];
+  // Extract user ID and role from headers or token
+  let userId = req.headers['x-user-id'] as string;
+  let userRole = req.headers['x-user-role'] as string;
 
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication required' });
+  // Fallback to token if middleware headers are not available
+  if (!userId || !userRole) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
+      userId = decoded.userId;
+      userRole = decoded.role;
+    } catch (error) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
   }
 
   try {
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
+    // Validate input using Zod
+    const validatedData = unitSchema.parse(req.body);
+    const { code, name, description, courseId } = validatedData;
+
+    // --- Permission Check ---
+    const course = await prisma.course.findUnique({ 
+      where: { id: courseId } 
+    });
     
-    const { code, name, description, courseId } = req.body;
-
-    // Validate input
-    if (!code || !name || !courseId) {
-      return res.status(400).json({ message: 'Unit code, name, and course ID are required' });
-    }
-
-    // Get the course to check permissions
-    const course = await prisma.course.findUnique({
-      where: { id: courseId },
-    });
-
     if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
+      return res.status(404).json({ message: 'Target course not found' });
     }
 
-    // Check if user is system admin or course admin
-    const isSystemAdmin = decoded.role === 'ADMIN';
-    const isCourseAdmin = course.courseAdminId === decoded.userId;
+    const isSuperAdmin = userRole === 'SUPER_ADMIN';
+    const isCourseAdmin = userRole === 'ADMIN' && course.courseAdminId === userId;
 
-    if (!isSystemAdmin && !isCourseAdmin) {
-      return res.status(403).json({ message: 'Access denied. Only course admins or system admins can create units.' });
+    if (!isSuperAdmin && !isCourseAdmin) {
+      return res.status(403).json({ message: 'Access Denied: Only Super Admins or the Course Admin can create units for this course.' });
     }
+    // --- End Permission Check ---
 
-    // Check if unit with this code already exists
-    const existingUnit = await prisma.unit.findUnique({
-      where: { code },
-    });
-
+    // Check existence
+    const existingUnit = await prisma.unit.findUnique({ where: { code } });
     if (existingUnit) {
       return res.status(409).json({ message: 'Unit with this code already exists' });
     }
 
-    // Create the unit
     const unit = await prisma.unit.create({
       data: {
         code,
         name,
         description: description || null,
-        courseId: courseId,
+        courseId: courseId, // Already validated
       },
     });
 
-    return res.status(201).json({
-      message: 'Unit created successfully',
-      unit,
-    });
+    return res.status(201).json({ message: 'Unit created successfully', unit });
   } catch (error) {
     console.error('Create Unit Error:', error);
-    if ((error as Error).name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: 'Invalid token' });
+    if (error instanceof z.ZodError) { 
+      return res.status(400).json({ errors: error.errors }); 
     }
     return res.status(500).json({ message: 'Internal server error' });
-  } finally {
-    await prisma.$disconnect();
   }
 }

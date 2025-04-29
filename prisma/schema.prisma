@@ -14,8 +14,9 @@ datasource db {
 }
 
 enum Role {
-  STUDENT
-  ADMIN
+  STUDENT      // Basic user, can enroll, submit assignments
+  ADMIN        // Course Admin: Manages units, assignments, submissions within assigned courses
+  SUPER_ADMIN  // System Admin: Manages everything, including courses and users
 }
 
 
@@ -55,15 +56,12 @@ model Unit {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  // Relation to a specific course
-  course   Course? @relation(fields: [courseId], references: [id])
-  courseId String?
+  // Relation to a specific course - now mandatory
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String
 
   // Relation: A unit can have many assignments
   assignments Assignment[]
-  
-  // Relation: A unit can be part of many courses (keeping for backward compatibility)
-  courses CourseUnit[]
   
   @@index([courseId])
 }
@@ -126,9 +124,6 @@ model Course {
   // Many-to-many with User (enrolled students)
   enrolledStudents UserCourse[]
   
-  // Many-to-many with Unit (keeping for backward compatibility)
-  units        CourseUnit[]
-  
   // Direct relationship with units
   courseUnits Unit[]
   
@@ -146,17 +141,4 @@ model UserCourse {
   @@id([userId, courseId])
   @@index([userId])
   @@index([courseId])
-}
-
-// Join table for Course-Unit relationship (many-to-many)
-model CourseUnit {
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  courseId  String
-  unit      Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  unitId    Int
-  addedAt   DateTime @default(now())
-  
-  @@id([courseId, unitId])
-  @@index([courseId])
-  @@index([unitId])
 }

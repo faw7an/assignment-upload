@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { NextApiRequest, NextApiResponse } from 'next';
-
-const prisma = new PrismaClient();
 
 // Store your secret in environment variables!
 const JWT_SECRET = process.env.JWT_SECRET;
