@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Nav from "../components/nav/Nav";
 import Profile from "../components/profile/Profile";
-import DeployedAssignment from "../components/deployedAssign/DeployedAssignment";
+import AssignmentCard from "../components/assignmentCard/AssignmentCard";
 import Modal from "../components/modal/Modal";
 import CreateAssignment from "../components/createAssignment/CreateAssignment";
 import addIcon from "../../../public/assets/icons/plus-solid (1).svg";
@@ -102,7 +102,7 @@ export default function UnitPage() {
         ) : deployed.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {deployed.map((assignment) => (
-              <DeployedAssignment
+              <AssignmentCard
                 key={assignment.id}
                 id={assignment.id}
                 unit={assignment.unit?.code}
