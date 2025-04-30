@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcrypt'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { generateToken } from '@/utils/tokenUtils';
 
 const SALT_ROUNDS = 12
 
@@ -48,9 +49,26 @@ export default async function handler(
     // TODO: email verification
     // Send verification email (future feature)
 
+    const userCreated = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: user.email }, { username: user.username }],
+      },
+    });
+
+    const payload = {
+      userId: userCreated.id,
+      role: userCreated.role,
+    };
+    
+    const token = generateToken(payload);
+    
     return res.status(201).json({
       message: 'User created successfully.',
+      token,
+      userRole: user.role 
     })
+
+   
   } catch (error) {
     console.error('Signup Error:', error);
     return res.status(500).json({ message: 'Internal server error' })

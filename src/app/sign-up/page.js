@@ -1,41 +1,50 @@
 "use client";
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function SignUp() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    course: ''
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [courses, setCourses] = useState(null);
+  const [loadingCourse, setLoadingCourse] = useState(null);
+  const [token, setToken] = useState(null);
+  const [courseID, setId] = useState(null);
 
   const validateStep = (step) => {
-    switch(step) {
+    switch (step) {
       case 0:
-        if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
-          setError('All fields are required');
+        if (
+          !formData.username ||
+          !formData.email ||
+          !formData.password ||
+          !formData.confirmPassword
+        ) {
+          setError("All fields are required");
           return false;
         }
         if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match');
+          setError("Passwords do not match");
           return false;
         }
-        setError('');
+        setError("");
         return true;
 
       case 1:
         if (!formData.course) {
-          setError('Please select a course');
+          setError("Please select a course");
           return false;
         }
-        setError('');
+        setError("");
         return true;
 
       default:
@@ -45,27 +54,31 @@ export default function SignUp() {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
   const handlePrev = () => {
-    setCurrentStep(prev => prev - 1);
+    setCurrentStep((prev) => prev - 1);
   };
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [id]: value
+      [id]: value,
     }));
   };
 
-  const handleCourseSelection = (course) => {
-    setFormData(prev => ({
+  const handleCourseSelection = (courseID) => {
+    setId(courseID); // Fix the parameter name to match
+
+    setFormData((prev) => ({
       ...prev,
-      course: course
+      course: courseID,
     }));
+    console.log(courseID);
+    console.log(formData);
   };
 
   const handleSubmit = async (e) => {
@@ -73,46 +86,93 @@ export default function SignUp() {
     if (validateStep(currentStep)) {
       try {
         setIsLoading(true);
-        setError('');
-        
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: formData.username,
-            email: formData.email,
-            password: formData.password,
-          }),
+        setError("");
+
+        const response = await axios.post("/api/auth/register", {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
         });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.message || 'Registration failed');
-        }
-        
-        setSuccess(data.message || 'Registration successful!');
-        
+
+        // With axios, the response data is already parsed in response.data
+        const data = response.data;
+
+        setSuccess(data.message || "Registration successful!");
+
         // Redirect to login page after successful registration
-        setTimeout(() => {
-          router.push('/log-in');
-        }, 150);
-        
+        // setTimeout(() => {
+        //   setSuccess("");
+        //   // router.push('/log-in');
+        // }, 2000);
+
+        // Store token in localStorage
+        if (data.token) {
+          localStorage.setItem("authToken", data.token);
+        }
       } catch (err) {
-        setError(err.message);
+        setError(
+          err.response?.data?.message || err.message || "Registration failed"
+        );
       } finally {
         setIsLoading(false);
       }
     }
   };
 
-  const formatStringWithCapitals = (str) => {
-    return str
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  const fetchCourses = async () => {
+    try {
+      setLoadingCourse(true);
+      const storeToken = localStorage.getItem("authToken");
+      const response = await axios.get("/api/dashboard/courses", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${storeToken}`,
+        },
+      });
+
+      setCourses(response.data.courses);
+      setToken(storeToken);
+    } catch (err) {
+      setError(err.message || "Failed to load courses");
+    } finally {
+      setLoadingCourse(false);
+    }
+  };
+
+  const enrollCourse = async () => {
+    try {
+      setIsLoading(true); // Set loading state to true while enrolling
+      
+      const response = await axios.post(
+        "/api/dashboard/courses/enroll",
+        {
+          courseId: courseID,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Handle successful enrollment
+      setSuccess(response.data.message || "Successfully enrolled in course");
+      
+      // Redirect user to dashboard after successful enrollment
+      setTimeout(() => {
+        router.push('/unitList');
+      }, 1200);
+      
+      return response.data;
+    } catch (err) {
+      // More comprehensive error handling
+      setError(
+        err.response?.data?.message || err.message || "Failed to enroll in course"
+      );
+      return null;
+    } finally {
+      setIsLoading(false); // Reset loading state regardless of outcome
+    }
   };
 
   return (
@@ -122,14 +182,16 @@ export default function SignUp() {
         <div className="relative flex justify-between px-5 sm:px-10 mb-8 sm:mb-10">
           <div className="absolute h-0.5 bg-gray-200 top-1/2 left-5 sm:left-10 right-5 sm:right-10 -translate-y-1/2 z-0"></div>
           {[1, 2].map((step, index) => (
-            <div 
-              key={step} 
+            <div
+              key={step}
               className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full z-10 font-semibold transition-all
-                ${index < currentStep 
-                  ? 'bg-indigo-500 text-white border-2 border-indigo-500' 
-                  : index === currentStep 
-                    ? 'bg-indigo-500 text-white border-2 border-indigo-500' 
-                    : 'bg-white border-2 border-gray-200 text-gray-700'}`}
+                ${
+                  index < currentStep
+                    ? "bg-indigo-500 text-white border-2 border-indigo-500"
+                    : index === currentStep
+                    ? "bg-indigo-500 text-white border-2 border-indigo-500"
+                    : "bg-white border-2 border-gray-200 text-gray-700"
+                }`}
             >
               {step}
             </div>
@@ -137,24 +199,31 @@ export default function SignUp() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded animate-fadeIn">
             {error}
           </div>
         )}
-        
+
         {success && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded animate-fadeIn">
             {success}
           </div>
         )}
-        
-        <form onSubmit={handleSubmit}>
+
+        <form>
           {/* Step 1: Account Information */}
           {currentStep === 0 && (
             <div className="animate-fadeIn">
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">Create Your Account</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">
+                Create Your Account
+              </h2>
               <div className="mb-5">
-                <label htmlFor="username" className="block text-gray-600 font-medium mb-2 text-sm">Username</label>
+                <label
+                  htmlFor="username"
+                  className="block text-gray-600 font-medium mb-2 text-sm"
+                >
+                  Username
+                </label>
                 <input
                   type="text"
                   id="username"
@@ -165,7 +234,12 @@ export default function SignUp() {
                 />
               </div>
               <div className="mb-5">
-                <label htmlFor="email" className="block text-gray-600 font-medium mb-2 text-sm">Email Address</label>
+                <label
+                  htmlFor="email"
+                  className="block text-gray-600 font-medium mb-2 text-sm"
+                >
+                  Email Address
+                </label>
                 <input
                   type="email"
                   id="email"
@@ -176,7 +250,12 @@ export default function SignUp() {
                 />
               </div>
               <div className="mb-5">
-                <label htmlFor="password" className="block text-gray-600 font-medium mb-2 text-sm">Password</label>
+                <label
+                  htmlFor="password"
+                  className="block text-gray-600 font-medium mb-2 text-sm"
+                >
+                  Password
+                </label>
                 <input
                   type="password"
                   id="password"
@@ -187,7 +266,12 @@ export default function SignUp() {
                 />
               </div>
               <div className="mb-5">
-                <label htmlFor="confirmPassword" className="block text-gray-600 font-medium mb-2 text-sm">Confirm Password</label>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-gray-600 font-medium mb-2 text-sm"
+                >
+                  Confirm Password
+                </label>
                 <input
                   type="password"
                   id="confirmPassword"
@@ -198,9 +282,13 @@ export default function SignUp() {
                 />
               </div>
               <div className="flex justify-end mt-8">
-                <button 
-                  type="button" 
-                  onClick={handleNext}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    handleSubmit(e);
+                    fetchCourses();
+                    handleNext();
+                  }}
                   className="px-5 py-3 sm:px-7 sm:py-3.5 bg-indigo-500 text-white font-semibold rounded-xl hover:bg-indigo-600 hover:-translate-y-0.5 transition shadow-sm hover:shadow-md"
                 >
                   Continue
@@ -212,52 +300,54 @@ export default function SignUp() {
           {/* Step 2: Course Selection */}
           {currentStep === 1 && (
             <div className="animate-fadeIn">
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">Select Your Course</h2>
-              
-              <div 
-                onClick={() => handleCourseSelection('web-development')}
-                className={`border-2 p-4 sm:p-5 rounded-2xl mb-4 cursor-pointer transition bg-gray-50 hover:bg-white
-                  ${formData.course === 'web-development' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}`}
-              >
-                <h3 className="text-lg sm:text-xl font-medium text-gray-800 mb-2">Web Development Bootcamp</h3>
-                <p className="text-gray-600 mb-2 text-sm sm:text-base">Master modern web development with hands-on projects</p>
-                <p className="text-gray-600 text-sm sm:text-base">Duration: 12 weeks • Price: $999</p>
-              </div>
-              
-              <div 
-                onClick={() => handleCourseSelection('data-science')}
-                className={`border-2 p-4 sm:p-5 rounded-2xl mb-4 cursor-pointer transition bg-gray-50 hover:bg-white
-                  ${formData.course === 'data-science' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}`}
-              >
-                <h3 className="text-lg sm:text-xl font-medium text-gray-800 mb-2">Data Science & Analytics</h3>
-                <p className="text-gray-600 mb-2 text-sm sm:text-base">Learn Python, Statistics, and Machine Learning</p>
-                <p className="text-gray-600 text-sm sm:text-base">Duration: 16 weeks • Price: $1299</p>
-              </div>
-              
-              <div 
-                onClick={() => handleCourseSelection('ui-design')}
-                className={`border-2 p-4 sm:p-5 rounded-2xl mb-4 cursor-pointer transition bg-gray-50 hover:bg-white
-                  ${formData.course === 'ui-design' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}`}
-              >
-                <h3 className="text-lg sm:text-xl font-medium text-gray-800 mb-2">UI/UX Design Essentials</h3>
-                <p className="text-gray-600 mb-2 text-sm sm:text-base">Create beautiful and functional user interfaces</p>
-                <p className="text-gray-600 text-sm sm:text-base">Duration: 8 weeks • Price: $799</p>
-              </div>
-              
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">
+                Select Your Course
+              </h2>
+
+              {loadingCourse ? (
+                <p className="text-gray-600">Loading courses...</p>
+              ) : (
+                courses.map((course) => (
+                  <div
+                    key={course.id}
+                    onClick={() => handleCourseSelection(course.id)}
+                    className={`border-2 p-4 sm:p-5 rounded-2xl mb-4 cursor-pointer transition bg-gray-50 hover:bg-white
+                      ${
+                        formData.course === course.id
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-gray-200"
+                      }`}
+                  >
+                    <h1 className="text-lg sm:text-xl font-semibold text-blue-500 ">
+                      {course.code}
+                    </h1>
+                    <h3 className="text-lg sm:text-xl font-semibold text-blue-700 ">
+                      {course.name}
+                    </h3>
+                    <p className="text-gray-600 mb-2 text-sm sm:text-base">
+                      {course.description}
+                    </p>
+                  </div>
+                ))
+              )}
+
               <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={handlePrev}
                   className="px-5 py-3 sm:px-7 sm:py-3.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 hover:-translate-y-0.5 transition order-2 sm:order-1"
                 >
                   Back
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={isLoading}
-                  className={`px-5 py-3 sm:px-7 sm:py-3.5 bg-indigo-500 text-white font-semibold rounded-xl hover:bg-indigo-600 hover:-translate-y-0.5 transition shadow-sm hover:shadow-md order-1 sm:order-2 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  onClick={enrollCourse}
+                  className={`px-5 py-3 sm:px-7 sm:py-3.5 bg-indigo-500 text-white font-semibold rounded-xl hover:bg-indigo-600 hover:-translate-y-0.5 transition shadow-sm hover:shadow-md order-1 sm:order-2 ${
+                    isLoading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 >
-                  {isLoading ? 'Signing Up...' : 'Complete Registration'}
+                  {isLoading ? "Signing Up..." : "Complete Registration"}
                 </button>
               </div>
             </div>
