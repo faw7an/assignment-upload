@@ -30,6 +30,13 @@ export default function LogIn() {
       setError('All fields are required');
       return;
     }
+
+  const fetchUserCourse = async()=>{
+    
+
+
+
+  }
     
     try {
       setLoading(true);

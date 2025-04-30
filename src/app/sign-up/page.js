@@ -99,12 +99,6 @@ export default function SignUp() {
 
         setSuccess(data.message || "Registration successful!");
 
-        // Redirect to login page after successful registration
-        // setTimeout(() => {
-        //   setSuccess("");
-        //   // router.push('/log-in');
-        // }, 2000);
-
         // Store token in localStorage
         if (data.token) {
           localStorage.setItem("authToken", data.token);
@@ -158,10 +152,10 @@ export default function SignUp() {
       // Handle successful enrollment
       setSuccess(response.data.message || "Successfully enrolled in course");
       
-      // Redirect user to dashboard after successful enrollment
+      // Redirect user to unitList page with courseId as query parameter
       setTimeout(() => {
-        router.push('/unitList');
-      }, 1200);
+        router.push(`/unitList?courseId=${courseID}`);
+      }, 1000);
       
       return response.data;
     } catch (err) {
