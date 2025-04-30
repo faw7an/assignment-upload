@@ -20,7 +20,7 @@ function Profile() {
     event.stopPropagation();
     setVisibility(!isVisible);
   };
-  useEffect(() => {
+   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         profileCardRef.current &&
@@ -28,17 +28,17 @@ function Profile() {
         profileButtonRef.current &&
         !profileButtonRef.current.contains(event.target)
       ) {
-        setVisibility(false);
         // Skip handling clicks outside if the card is already hidden
         if (!isVisible) return;
+        setVisibility(false);
       }
     };
-
+  
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [isVisible]); // Added isVisible to dependency array
 
   useEffect(() => {
     const storeToken = localStorage.getItem("authToken");
