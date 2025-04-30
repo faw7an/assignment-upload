@@ -58,10 +58,14 @@ export default function LogIn() {
         password: '',
       });
       
-      // Optional: redirect to dashboard or home page after login
+      // Redirect based on user role
       setTimeout(() => {
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Check if server returned a userRole property, otherwise redirect to unitList as default
+        if (data.userRole === "SUPER_ADMIN") {
+          router.push('/dashboard');
+        } else {
+          router.push('/unitList');
+        }
       }, 150);
       
     } catch (err) {

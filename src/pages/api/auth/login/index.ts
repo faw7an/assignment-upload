@@ -45,7 +45,6 @@ export default async function handler(
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-
     const payload = {
       userId: user.id,
       role: user.role,
@@ -55,8 +54,10 @@ export default async function handler(
       expiresIn: '200h', 
     });
 
-
-    return res.status(200).json({ token }); 
+    return res.status(200).json({ 
+      token,
+      userRole: user.role 
+    });
 
   } catch (error) {
     console.error('Login Error:', error);

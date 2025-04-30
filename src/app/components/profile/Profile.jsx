@@ -91,12 +91,14 @@ function Profile() {
             : "opacity-0 pointer-events-none"
         }`}
       >
-        <Image
+        {/* <Image
           src={fawzan}
           alt="profile"
           className="w-20 h-20 sm:w-24 sm:h-24 p-1 mb-4 bg-gray-200 object-cover rounded-full shadow-md"
           quality={100}
-        />
+        /> */}
+           <Avatar name={user.username || ""}
+           />
         <h2 className="text-lg font-semibold mb-2">{user.username}</h2>
         <p className="text-gray-600 mb-1">
           <span className="font-semibold">Email:</span>{" "}

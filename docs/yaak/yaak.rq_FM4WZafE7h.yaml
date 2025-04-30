@@ -2,13 +2,14 @@ type: http_request
 model: http_request
 id: rq_FM4WZafE7h
 createdAt: 2025-04-28T22:32:40.066833731
-updatedAt: 2025-04-28T22:32:40.066835706
+updatedAt: 2025-04-30T12:17:54.236384948
 workspaceId: wk_MkTb2yyL29
 folderId: null
-authentication: {}
-authenticationType: null
+authentication:
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5OWM3Y2E1YS1kYmMyLTQzNDctODJmNC1lMWY5NWU1M2QzZDUiLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0NjAxMzc4NCwiZXhwIjoxNzQ2NzMzNzg0fQ.SCWhOnlIUgdZLIbkXNiLcBemMMxEXB0pCjfuVeJMkzI
+authenticationType: bearer
 body:
-  text: '{"courseId":1}'
+  text: '{"courseId":"dae6c86e-205f-4ee3-a0c4-dd19046a3fa1"}'
 bodyType: application/json
 description: ''
 headers:
