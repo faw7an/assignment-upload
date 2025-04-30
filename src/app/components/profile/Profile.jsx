@@ -8,7 +8,6 @@ import fawzan from "../../../../public/assets/images/faw7y.jpg";
 import Avatar from "../avatar/Avatar";
 import axios from "axios";
 
-
 function Profile() {
   const [isVisible, setVisibility] = useState(false);
   const profileCardRef = useRef(null);
@@ -20,25 +19,26 @@ function Profile() {
     event.stopPropagation();
     setVisibility(!isVisible);
   };
-   useEffect(() => {
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
+      if (!isVisible) return;
+
       if (
         profileCardRef.current &&
         !profileCardRef.current.contains(event.target) &&
         profileButtonRef.current &&
         !profileButtonRef.current.contains(event.target)
       ) {
-        // Skip handling clicks outside if the card is already hidden
-        if (!isVisible) return;
         setVisibility(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isVisible]); // Added isVisible to dependency array
+  }, [isVisible]);
 
   useEffect(() => {
     const storeToken = localStorage.getItem("authToken");
@@ -58,34 +58,37 @@ function Profile() {
       }
     };
 
-    if(storeToken){
+    if (storeToken) {
       fetchUserData();
     }
   }, []);
 
   return (
-    <div className="z-10">
+    <>
       {/* Overlay */}
       {isVisible && (
         <div
           className="fixed top-0 left-0 w-full h-full bg-black/50 z-40"
-          onClick={() => setVisibility(false)} // Close the profile card when clicking on the overlay
+          onClick={() => setVisibility(false)}
         ></div>
       )}
 
+      {/* Avatar Button */}
       <div
-        className="profile absolute top-18 sm:top-20 md:top-20 lg:top-19 w-full h-[500px] right-2 z-50"
+        className="absolute right-4 top-[30px] sm:top-[30px] sm:right-5 md:right-6 md:top-[30px] z-50 cursor-pointer"
         ref={profileButtonRef}
         onClick={handleVisiblity}
       >
-        <Avatar name={user.username || ''}  />
+        <Avatar name={user.username || ""} />
       </div>
 
       {/* Profile Card */}
       <div
         ref={profileCardRef}
-        className={`z-50 w-84 fixed right-5 top-20 text-black flex flex-col items-center justify-center rounded-lg bg-white shadow-lg p-6 transition-opacity duration-300 ${
-          isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`z-50 w-84 fixed sm:top-20 md:top-20 lg:top-19 right-5 top-20 text-black flex flex-col items-center justify-center rounded-lg bg-white shadow-lg p-6 transition-all duration-300 ${
+          isVisible
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
       >
         <Image
@@ -115,8 +118,7 @@ function Profile() {
           <button
             className="flex gap-2 rounded bg-red-500 hover:bg-red-600 hover:text-white text-white p-2 px-4"
             onClick={() => {
-              localStorage.clear(); // Clear local storage
-              // refresh window
+              localStorage.clear();
               window.location.reload();
             }}
           >
@@ -125,7 +127,7 @@ function Profile() {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -2,11 +2,11 @@ type: http_request
 model: http_request
 id: rq_CuCMgKGf7T
 createdAt: 2025-04-28T22:32:39.974327347
-updatedAt: 2025-04-29T14:59:23.092741762
+updatedAt: 2025-04-30T09:27:25.487012358
 workspaceId: wk_MkTb2yyL29
 folderId: null
 authentication:
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ZDRhYWVkNy0xOThlLTRjZWItOGFkNi0xYTc5YmQyZjMyMzYiLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0NTkzNTYwMSwiZXhwIjoxNzQ2NjU1NjAxfQ.wzaOJzZXSpgA7NRSMcs6-cJLHIBECaCgcAWfQa0MHTA
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ODI3MjdkOS0yZDhiLTRjMGUtYTQ0Yi02MDg3M2M2Y2U2YTIiLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0NjAwNTE3NCwiZXhwIjoxNzQ2NzI1MTc0fQ.bXqJN0YAe4K9TxSeL3BWVJwOvHNOxirHey7swVz83rA
 authenticationType: bearer
 body:
   text: '{"name":"Art Science 2023","description":"Art Science for 2023 academic year"}'

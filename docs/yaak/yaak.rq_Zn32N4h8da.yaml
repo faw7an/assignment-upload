@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_Zn32N4h8da
 createdAt: 2025-04-28T22:32:39.376423163
-updatedAt: 2025-04-28T22:32:39.376423961
+updatedAt: 2025-04-30T09:23:46.559053329
 workspaceId: wk_MkTb2yyL29
 folderId: null
 authentication: {}
@@ -10,8 +10,8 @@ authenticationType: null
 body:
   text: |-
     {
-      "username": "johndoe",
-      "email": "john@example.com",
+      "username": "johnydoe",
+      "email": "johny@example.com",
       "password": "securepassword"
     }
 bodyType: application/json

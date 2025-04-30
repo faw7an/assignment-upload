@@ -2,15 +2,17 @@ type: http_request
 model: http_request
 id: rq_FEFp7UL2xm
 createdAt: 2025-04-28T22:32:39.485814544
-updatedAt: 2025-04-28T22:32:39.485816662
+updatedAt: 2025-04-30T09:36:02.725296257
 workspaceId: wk_MkTb2yyL29
 folderId: null
-authentication: {}
-authenticationType: null
+authentication:
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjY2M1OTFhNy1iZDE5LTQ2YmItODIzNS0xYjMyNDc2NjE4ZDgiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDYwMDU3NDEsImV4cCI6MTc0NjcyNTc0MX0.cK5nXNChEAYR0L0wDBn56W0NswHYI15zIzB98SHC16Q
+authenticationType: bearer
 body:
   text: |-
     {
-      "code": "CS101",
+      "code": "CS10d1",
+      "courseId":"e6f3625f-df0f-43d7-a61e-271cb019c327",
       "name": "Introduction to Computer Science",
       "description": "Foundational concepts in computer science"
     }

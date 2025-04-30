@@ -14,7 +14,6 @@ function Avatar({ name = "User"}) {
       radius: 50,
       fontWeight: 400,
       fontSize: 50,
-    
     });
     
     const svg = avatar.toString();
@@ -23,7 +22,7 @@ function Avatar({ name = "User"}) {
 
   return (
     <div 
-      className="overflow-hidden flex items-center justify-center w-[46px] h-[46px] sm:w-[48px] sm:h-[48px] md:w-[50px] md:h-[50px] lg:w-[56px] lg:h-[56px] absolute right-4 top-[-36px] sm:top-[-45px] sm:right-5 md:right-6 md:top-[-50px] p-0.5 rounded-full"
+      className="overflow-hidden flex items-center justify-center w-[46px] h-[46px] sm:w-[48px] sm:h-[48px] md:w-[50px] md:h-[50px] lg:w-[56px] lg:h-[56px] p-0.5 rounded-full"
       dangerouslySetInnerHTML={{ __html: svgString }}
     />
   );

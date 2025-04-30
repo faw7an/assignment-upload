@@ -2,11 +2,12 @@ type: http_request
 model: http_request
 id: rq_kXAuENw9vb
 createdAt: 2025-04-28T22:32:40.028294549
-updatedAt: 2025-04-28T22:32:40.028296029
+updatedAt: 2025-04-30T09:29:10.409428376
 workspaceId: wk_MkTb2yyL29
 folderId: null
-authentication: {}
-authenticationType: null
+authentication:
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ODI3MjdkOS0yZDhiLTRjMGUtYTQ0Yi02MDg3M2M2Y2U2YTIiLCJyb2xlIjoiU1RVREVOVCIsImlhdCI6MTc0NjAwNTE3NCwiZXhwIjoxNzQ2NzI1MTc0fQ.bXqJN0YAe4K9TxSeL3BWVJwOvHNOxirHey7swVz83rA
+authenticationType: bearer
 body: {}
 bodyType: null
 description: ''
@@ -18,5 +19,5 @@ headers:
 method: DELETE
 name: delete course
 sortPriority: 0.0
-url: http://localhost:3000/api/dashboard/courses/1
+url: http://localhost:3000/api/dashboard/courses/e6f3625f-df0f-43d7-a61e-271cb019c327
 urlParameters: []
