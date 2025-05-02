@@ -154,7 +154,7 @@ export default function SignUp() {
       
       // Redirect user to unitList page with courseId as query parameter
       setTimeout(() => {
-        router.push(`/unitList?courseId=${courseID}`);
+        router.push(`/log-in`);
       }, 1000);
       
       return response.data;

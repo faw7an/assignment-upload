@@ -4,9 +4,10 @@ import Image from "next/image";
 import userDefault from "../../../../public/assets/icons/userDefault.svg";
 import settingsIcon from "../../../../public/assets/icons/gear-solid.svg";
 import logOutIcon from "../../../../public/assets/icons/right-from-bracket-solid.svg";
-import fawzan from "../../../../public/assets/images/faw7y.jpg";
 import Avatar from "../avatar/Avatar";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+
 
 function Profile() {
   const [isVisible, setVisibility] = useState(false);
@@ -14,7 +15,9 @@ function Profile() {
   const profileButtonRef = useRef(null);
   const [user, setUser] = useState({ username: "" });
   const [token, setToken] = useState(null);
+  const router = useRouter();
 
+  
   const handleVisiblity = (event) => {
     event.stopPropagation();
     setVisibility(!isVisible);
@@ -121,7 +124,7 @@ function Profile() {
             className="flex gap-2 rounded bg-red-500 hover:bg-red-600 hover:text-white text-white p-2 px-4"
             onClick={() => {
               localStorage.clear();
-              window.location.reload();
+              router.push("/log-in")
             }}
           >
             Log out

@@ -33,6 +33,8 @@ export default function AssignmentListPage() {
   const handleAssignmentCreated = (newAssignment) => {
     // Add the new assignment to the deployed list
     setDeployed(prev => [newAssignment, ...prev]);
+    // Close the modal
+    setIsModalOpen(false);
   };
 
   useEffect(() => {
@@ -118,14 +120,13 @@ export default function AssignmentListPage() {
         )}
 
         {/* Add new assignment button */}
-        <div className="relative">
-          <div
-            className="flex items-center bg-red-500 text-white w-10 hover:w-32 transition-all duration-300 p-2 m-5 rounded-full overflow-hidden cursor-pointer"
+        <div className="relative mt-6 ">
+          <button
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
             onClick={handleModalToggle}
           >
-            <Image src={addIcon} alt="Add Icon" className="w-6 h-6" />
-            <p className="ml-3 whitespace-nowrap opacity-100">Add Assignment</p>
-          </div>
+          Add Assignment
+          </button>
         </div>
 
         {/* Modal for creating new assignment */}

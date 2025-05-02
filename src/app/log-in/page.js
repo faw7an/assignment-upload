@@ -30,13 +30,6 @@ export default function LogIn() {
       setError('All fields are required');
       return;
     }
-
-  const fetchUserCourse = async()=>{
-    
-
-
-
-  }
     
     try {
       setLoading(true);
@@ -57,6 +50,11 @@ export default function LogIn() {
       // Store token in localStorage
       localStorage.setItem('authToken', data.token);
       
+      // Store user courses in localStorage if available
+      if (data.courses && Array.isArray(data.courses)) {
+        localStorage.setItem('userCourses', JSON.stringify(data.courses));
+      }
+      
       setSuccess('Login successful!');
       
       // Clear form after successful login
@@ -70,6 +68,9 @@ export default function LogIn() {
         // Check if server returned a userRole property, otherwise redirect to unitList as default
         if (data.userRole === "SUPER_ADMIN") {
           router.push('/dashboard');
+        } else if (data.courses && data.courses.length > 0) {
+          // If user has courses, redirect to the unitList page with the first course ID
+          router.push(`/unitList?courseId=${data.courses[0].id}`);
         } else {
           router.push('/unitList');
         }

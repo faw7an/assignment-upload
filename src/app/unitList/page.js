@@ -13,9 +13,14 @@ function UnitList() {
   const [units, setUnits] = useState([]);
   const handleOpenCreateUnit = () => setIsCreateUnitOpen(true);
   const handleCloseCreateUnit = () => setIsCreateUnitOpen(false);
+  const [newUnit, setNewUnit] = useState(null);
 
   const handleDeleteUnit = (unitId) => {
     setUnits((prevUnits) => prevUnits.filter((unit) => unit.id !== unitId));
+  };
+
+  const handleCreateUnit = (unit) => {
+    setNewUnit(unit);
   };
 
   useEffect(() => {
@@ -40,14 +45,20 @@ function UnitList() {
           }
         );
         setUnits(response.data.units);
-        // console.log("Fetched units successfully");
-        // console.log(response.data.units);
       } catch (error) {
         console.error("Error fetching units", error);
       }
     };
     fetchUnit();
   }, []);
+
+  useEffect(() => {
+    // Only update units if newUnit exists
+    if (!isCreateUnitOpen && newUnit ) {
+      setUnits((prevUnits) => [newUnit, ...prevUnits]);
+      setNewUnit(null);
+    }
+  }, [isCreateUnitOpen ,newUnit ]);
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gray-100">
@@ -96,6 +107,7 @@ function UnitList() {
       <CreateUnit
         isOpen={isCreateUnitOpen}
         onClose={handleCloseCreateUnit}
+        onUnitCreated={handleCreateUnit}
         token={token} // Pass the token fetched from local storage
       />
     </div>

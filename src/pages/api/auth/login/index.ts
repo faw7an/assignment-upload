@@ -45,6 +45,34 @@ export default async function handler(
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // 4. Get user's enrolled courses
+    const userCourses = await prisma.userCourse.findMany({
+      where: {
+        userId: user.id,
+      },
+      include: {
+        course: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            description: true,
+          }
+        }
+      },
+      orderBy: {
+        enrolledAt: 'desc',
+      },
+    });
+
+    const courses = userCourses.map(uc => ({
+      id: uc.course.id,
+      name: uc.course.name,
+      code: uc.course.code,
+      description: uc.course.description,
+      enrolledAt: uc.enrolledAt,
+    }));
+
     const payload = {
       userId: user.id,
       role: user.role,
@@ -56,7 +84,8 @@ export default async function handler(
 
     return res.status(200).json({ 
       token,
-      userRole: user.role 
+      userRole: user.role,
+      courses // Include the user's courses in the response 
     });
 
   } catch (error) {

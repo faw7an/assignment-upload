@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "../modal/Modal";
 
-function CreateUnit({ isOpen, onClose, token }) {
+function CreateUnit({ isOpen, onClose, token, onUnitCreated }) {
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -17,7 +17,7 @@ function CreateUnit({ isOpen, onClose, token }) {
     // Get courseId from URL parameters when component mounts
     const params = new URLSearchParams(window.location.search);
     const courseId = params.get("courseId");
-  if (courseId) {
+    if (courseId) {
       setFormData((prev) => ({ ...prev, courseId }));
     }
   }, []);
@@ -59,11 +59,17 @@ function CreateUnit({ isOpen, onClose, token }) {
         setSuccess("Unit created successfully!");
         setError(null);
         console.log("Unit created successfully:", data);
+
+        // Pass the newly created unit back to the parent component if onUnitCreated exists
+        if (onUnitCreated && data.unit) {
+          onUnitCreated(data.unit);
+        }
+
         setFormData({
           code: "",
           name: "",
           description: "",
-          courseId: "",
+          courseId: formData.courseId, // Keep the courseId for future submissions
         });
 
         setTimeout(() => {

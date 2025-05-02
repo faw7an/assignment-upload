@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-export default function CreateAssignment({ isOpen, onClose, token, unitId }) {
+export default function CreateAssignment({ isOpen, onClose, token, unitId, onAssignmentCreated }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -38,12 +38,20 @@ export default function CreateAssignment({ isOpen, onClose, token, unitId }) {
       );
 
       console.log("Assignment created:", response.data);
+      
+      // Call the callback with the new assignment data
+      if (onAssignmentCreated && response.data.assignment) {
+        onAssignmentCreated(response.data.assignment);
+      } else {
+        // Fallback to closing the modal if no callback provided
+        onClose();
+      }
+      
+      // Reset the form
       setTitle("");
       setDescription("");
       setDueDate("");
-      onClose();
-      // Reload the page to show the new assignment
-      window.location.reload();
+      
     } catch (error) {
       console.error("Error creating assignment:", error);
       setError(
@@ -56,7 +64,7 @@ export default function CreateAssignment({ isOpen, onClose, token, unitId }) {
 
   return (
     <div className="bg-white p-6 rounded-lg w-full max-w-md">
-      <h2 className="text-xl font-bold mb-4">Create New Assignment</h2>
+      <h2 className="text-xl text-gray-600 font-bold mb-4">Create New Assignment</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
@@ -67,7 +75,7 @@ export default function CreateAssignment({ isOpen, onClose, token, unitId }) {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded text-black"
             required
           />
         </div>
@@ -76,7 +84,7 @@ export default function CreateAssignment({ isOpen, onClose, token, unitId }) {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded text-black"
             rows="4"
           ></textarea>
         </div>
@@ -86,7 +94,7 @@ export default function CreateAssignment({ isOpen, onClose, token, unitId }) {
             type="datetime-local"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-2 border border-gray-300 rounded text-black"
           />
         </div>
         <div className="flex justify-end gap-2">
