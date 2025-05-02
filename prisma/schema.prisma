@@ -40,9 +40,6 @@ model User {
   // Relation: A user can be enrolled in many courses
   enrolledCourses UserCourse[]
   
-  // Relation: A user can be admin of many courses
-  adminOfCourses Course[]
-
   @@index([email])
   @@index([username])
 }
@@ -117,17 +114,11 @@ model Course {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  // Course admin relationship
-  courseAdmin    User?   @relation(fields: [courseAdminId], references: [id])
-  courseAdminId  String?
-  
   // Many-to-many with User (enrolled students)
   enrolledStudents UserCourse[]
   
   // Direct relationship with units
   courseUnits Unit[]
-  
-  @@index([courseAdminId])
 }
 
 // Join table for User-Course relationship (many-to-many)

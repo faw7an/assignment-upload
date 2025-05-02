@@ -15,7 +15,8 @@ export const config = {
     '/api/dashboard/:path*',
     '/api/user/profile',
     '/api/user/change-password',
-    '/dashboard', // Add dashboard route to the matcher
+    '/dashboard', // Add dashboard route to be protected
+    '/dashboard/:path*'
   ],
 };
 
@@ -38,55 +39,54 @@ async function verifyToken(token: string): Promise<UserJwtPayload | null> {
 }
 
 export async function middleware(req: NextRequest) {
-  const token = req.headers.get('authorization')?.split(' ')[1];
+  // Check for token in authorization header or cookies
+  const authHeader = req.headers.get('authorization');
+  let token = authHeader?.split(' ')[1];
+  
+  // If no token in header, try to get it from cookies
+  if (!token) {
+    token = req.cookies.get('authToken')?.value;
+  }
+  
   const isApiRoute = req.nextUrl.pathname.startsWith('/api/');
-  const isDashboardRoute = req.nextUrl.pathname === '/dashboard';
+  const isDashboardRoute = req.nextUrl.pathname === '/dashboard' || req.nextUrl.pathname.startsWith('/dashboard/');
 
-  // For dashboard route, get token from cookies if not in headers
-  let tokenToUse = token;
-  if (isDashboardRoute && !token) {
-    tokenToUse = req.cookies.get('authToken')?.value;
-  }
-
-  if (!tokenToUse) {
-    const message = 'Authentication required';
+  // If no token found, handle accordingly
+  if (!token) {
     if (isApiRoute) {
-      return new Response(JSON.stringify({ message }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ message: 'Authentication required' }), 
+        { status: 401, headers: { 'Content-Type': 'application/json' } });
+    } else {
+      // Redirect to login page
+      const loginUrl = new URL('/log-in', req.url);
+      return NextResponse.redirect(loginUrl);
     }
-    
-    // For dashboard route, redirect to 404 instead of login if no token
-    if (isDashboardRoute) {
-      return NextResponse.redirect(new URL('/404', req.url));
-    }
-    
-    // For other routes, redirect to login
-    const loginUrl = new URL('/log-in', req.url);
-    return NextResponse.redirect(loginUrl);
   }
 
-  const decodedPayload = await verifyToken(tokenToUse);
-
+  // Verify the token
+  const decodedPayload = await verifyToken(token);
+  
   if (!decodedPayload) {
-    const message = 'Invalid or expired token';
     if (isApiRoute) {
-      return new Response(JSON.stringify({ message }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ message: 'Invalid or expired token' }), 
+        { status: 401, headers: { 'Content-Type': 'application/json' } });
+    } else {
+      // Redirect with error
+      const loginUrl = new URL('/log-in', req.url);
+      loginUrl.searchParams.set('error', 'session_expired');
+      return NextResponse.redirect(loginUrl);
     }
-    
-    // For dashboard route, redirect to 404 if token is invalid
-    if (isDashboardRoute) {
-      return NextResponse.redirect(new URL('/404', req.url));
-    }
-    
-    // For other routes, redirect to login with session expired error
-    const loginUrl = new URL('/log-in', req.url);
-    loginUrl.searchParams.set('error', 'session_expired');
-    return NextResponse.redirect(loginUrl);
   }
 
-  // Check for dashboard access - restrict to SUPER_ADMIN only
+  // For dashboard routes, check if user is SUPER_ADMIN
   if (isDashboardRoute && decodedPayload.role !== 'SUPER_ADMIN') {
-    // Redirect non-admin users to 404 page
-    return NextResponse.redirect(new URL('/404', req.url));
+    // If not super admin, redirect to appropriate page
+    if (decodedPayload.role === 'STUDENT') {
+      return NextResponse.redirect(new URL('/404', req.url));
+    } else {
+      // Default fallback for any other roles
+      return NextResponse.redirect(new URL('/404', req.url));
+    }
   }
 
   // Token is valid, attach user info to headers
@@ -94,9 +94,20 @@ export async function middleware(req: NextRequest) {
   requestHeaders.set('X-User-Id', decodedPayload.userId);
   requestHeaders.set('X-User-Role', decodedPayload.role);
 
-  return NextResponse.next({
+  // Set token as a cookie for client-side access if it's not already there
+  const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
+
+  if (!req.cookies.has('authToken')) {
+    response.cookies.set('authToken', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/'
+    });
+  }
+
+  return response;
 }

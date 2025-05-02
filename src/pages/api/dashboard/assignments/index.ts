@@ -34,11 +34,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!unit || !unit.course) {
       return res.status(404).json({ message: 'Target unit or its associated course not found' });
     }
+
+    // Allow both ADMIN and SUPER_ADMIN to create assignments
     const isSuperAdmin = userRole === 'SUPER_ADMIN';
-    const isCourseAdmin = userRole === 'ADMIN' && unit.course.courseAdminId === userId;
-    if (!isSuperAdmin && !isCourseAdmin) {
-      return res.status(403).json({ message: 'Access Denied: Only Super Admins or the relevant Course Admin can create assignments.' });
+    const isAdmin = userRole === 'ADMIN';
+    const hasAdminPrivileges = isSuperAdmin || isAdmin;
+
+    if (!hasAdminPrivileges) {
+      return res.status(403).json({ message: 'Access Denied: Only Admins or Super Admins can create assignments.' });
     }
+
     try {
       const assignment = await prisma.assignment.create({
         data: {
@@ -122,18 +127,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!isSuperAdmin && !isAdmin) {
       const userCourses = await prisma.course.findMany({
         where: {
-          OR: [
-            {
-              courseAdminId: userId,
+          enrolledStudents: {
+            some: {
+              userId: userId,
             },
-            {
-              enrolledStudents: {
-                some: {
-                  userId: userId,
-                },
-              },
-            },
-          ],
+          },
         },
         select: {
           id: true,
@@ -198,16 +196,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     } else if (isAdmin && !isSuperAdmin) {
-      const adminCourses = await prisma.course.findMany({
-        where: {
-          courseAdminId: userId,
-        },
+      const allCourses = await prisma.course.findMany({
         select: {
           id: true,
         },
       });
 
-      const adminCourseIds = adminCourses.map((course) => course.id);
+      const adminCourseIds = allCourses.map((course) => course.id);
 
       const adminUnits = await prisma.unit.findMany({
         where: {

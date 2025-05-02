@@ -25,7 +25,7 @@ export default async function handler(
     const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
     
     // Extract query parameters for filtering
-    const { name, code, adminId, enrolledOnly } = req.query;
+    const { name, code, enrolledOnly } = req.query;
     
     // Build where clause based on query parameters
     let whereClause: any = {};
@@ -42,27 +42,18 @@ export default async function handler(
       };
     }
     
-    if (adminId) {
-      whereClause.courseAdminId = adminId as string;
-    }
-    
-    // If enrolledOnly=true, only show courses where the user is enrolled or is admin
-    if (enrolledOnly === 'true' && decoded.role !== 'ADMIN') {
-      whereClause.OR = [
-        { courseAdminId: decoded.userId },
-        { enrolledStudents: { some: { userId: decoded.userId } } }
-      ];
+    // If enrolledOnly=true, only show courses where the user is enrolled
+    if (enrolledOnly === 'true' && decoded.role !== 'SUPER_ADMIN') {
+      whereClause.enrolledStudents = { 
+        some: { 
+          userId: decoded.userId 
+        } 
+      };
     }
     
     const courses = await prisma.course.findMany({
       where: whereClause,
       include: {
-        courseAdmin: {
-          select: {
-            id: true,
-            username: true
-          }
-        },
         _count: {
           select: {
             enrolledStudents: true,
@@ -75,14 +66,8 @@ export default async function handler(
       },
     });
     
-    // Add a field to indicate if the current user is admin of each course
-    const coursesWithAdminInfo = courses.map(course => ({
-      ...course,
-      isCurrentUserAdmin: course.courseAdminId === decoded.userId
-    }));
-    
     return res.status(200).json({
-      courses: coursesWithAdminInfo,
+      courses: courses,
     });
   } catch (error) {
     console.error('Fetch Courses Error:', error);

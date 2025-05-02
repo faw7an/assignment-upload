@@ -4,7 +4,7 @@ import homeIcon from "../../../../public/assets/icons/home.svg";
 import folderIcon from "../../../../public/assets/icons/folder.svg";
 import dashIcon from "../../../../public/assets/icons/dash.svg";
 import Link from "next/link";
-
+import { ChartBarIcon } from '@heroicons/react/24/outline';
 function Nav() {
   return (
     <div className="flex items-center justify-center">
@@ -24,8 +24,9 @@ function Nav() {
         </Link>
         <Link href="/dashboard">
         <li className="flex flex-row items-center justify-center">
-          <Image src={dashIcon} alt="dashboard page" className="w-6 mx-2" /> 
-          <span className="hidden sm:block">Dashboard</span>
+          {/* <Image src={dashIcon} alt="dashboard page" className="w-6 mx-2" />  */}
+          <ChartBarIcon className="h-6 w-6" />
+          <span className="ml-1 hidden sm:block">Dashboard</span>
         </li>
         </Link>
       </ul>

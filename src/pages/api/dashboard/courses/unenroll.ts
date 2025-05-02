@@ -42,13 +42,12 @@ export default async function handler(
     
     // If unenrolling another user, check if current user has permission
     if (userId && userId !== decoded.userId) {
-      // Check if user is system admin or course admin
-      const isSystemAdmin = decoded.role === 'ADMIN';
-      const isCourseAdmin = course.courseAdminId === decoded.userId;
+      // Only super admins can unenroll other users
+      const isSuperAdmin = decoded.role === 'SUPER_ADMIN';
       
-      if (!isSystemAdmin && !isCourseAdmin) {
+      if (!isSuperAdmin) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can unenroll other users.' 
+          message: 'Access denied. Only super admins can unenroll other users.' 
         });
       }
     }
@@ -67,13 +66,6 @@ export default async function handler(
     
     if (!enrollment) {
       return res.status(404).json({ message: 'User is not enrolled in this course' });
-    }
-    
-    // Cannot unenroll the course admin
-    if (studentId === course.courseAdminId) {
-      return res.status(403).json({ 
-        message: 'Course admin cannot be unenrolled from their own course.' 
-      });
     }
     
     // Delete enrollment

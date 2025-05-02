@@ -42,20 +42,21 @@ export default async function handler(
       return res.status(404).json({ message: 'Unit not found' });
     }
 
-    // Check if user is system admin or course admin
-    const isSystemAdmin = decoded.role === 'ADMIN';
-    const isCourseAdmin = unit.course.courseAdminId === decoded.userId;
+    // Check if user is super admin or admin
+    const isSuperAdmin = decoded.role === 'SUPER_ADMIN';
+    const isAdmin = decoded.role === 'ADMIN';
+    const hasAdminPrivileges = isSuperAdmin || isAdmin;
 
     // GET: Fetch unit details
     if (req.method === 'GET') {
       return res.status(200).json({ unit });
     }
     
-    // PUT: Update unit (admin or course admin only)
+    // PUT: Update unit (admin or super admin)
     else if (req.method === 'PUT') {
-      if (!isSystemAdmin && !isCourseAdmin) {
+      if (!hasAdminPrivileges) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can update units.' 
+          message: 'Access denied. Only admins or super admins can update units.' 
         });
       }
 
@@ -88,11 +89,11 @@ export default async function handler(
       });
     }
     
-    // DELETE: Remove unit (admin or course admin only)
+    // DELETE: Remove unit (admin or super admin)
     else if (req.method === 'DELETE') {
-      if (!isSystemAdmin && !isCourseAdmin) {
+      if (!hasAdminPrivileges) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can delete units.' 
+          message: 'Access denied. Only admins or super admins can delete units.' 
         });
       }
       

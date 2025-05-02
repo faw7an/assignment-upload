@@ -56,27 +56,25 @@ export default async function handler(
     }
 
     // Check if user has permission to access this submission
-    const isSystemAdmin = decoded.role === 'ADMIN';
-    const isCourseAdmin = submission.assignment.unit.course && submission.assignment.unit.course.courseAdminId === decoded.userId;
+    const isSuperAdmin = decoded.role === 'SUPER_ADMIN';
     const isSubmissionOwner = submission.studentId === decoded.userId;
 
-    if (!isSystemAdmin && !isCourseAdmin && !isSubmissionOwner) {
-      return res.status(403).json({ 
-        message: 'Access denied. You do not have permission to access this submission.' 
-      });
-    }
-
-    // GET: Fetch submission details
+    // For GET: Allow submission owner and super admin to access
     if (req.method === 'GET') {
+      if (!isSuperAdmin && !isSubmissionOwner) {
+        return res.status(403).json({ 
+          message: 'Access denied. You do not have permission to access this submission.' 
+        });
+      }
       return res.status(200).json({ submission });
     }
     
-    // PUT: Update submission (admin or course admin only)
+    // PUT: Update submission (super admin only)
     else if (req.method === 'PUT') {
-      // Only admins and course admins can grade/provide feedback
-      if (!isSystemAdmin && !isCourseAdmin) {
+      // Only super admins can grade/provide feedback
+      if (!isSuperAdmin) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can update submissions.' 
+          message: 'Access denied. Only super admins can update submissions.' 
         });
       }
 
@@ -96,9 +94,9 @@ export default async function handler(
       });
     }
     
-    // DELETE: Delete submission (admin, course admin, or submission owner)
+    // DELETE: Delete submission (super admin or submission owner)
     else if (req.method === 'DELETE') {
-      if (!isSystemAdmin && !isCourseAdmin && !isSubmissionOwner) {
+      if (!isSuperAdmin && !isSubmissionOwner) {
         return res.status(403).json({ 
           message: 'Access denied. You do not have permission to delete this submission.' 
         });

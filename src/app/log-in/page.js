@@ -47,8 +47,11 @@ export default function LogIn() {
         throw new Error(data.message || 'Login failed');
       }
       
-      // Store token in localStorage
+      // Store token in localStorage for client-side API calls
       localStorage.setItem('authToken', data.token);
+      
+      // Also store token in a cookie for server-side authentication
+      document.cookie = `authToken=${data.token}; path=/; max-age=${60*60*200}; SameSite=Strict`;
       
       // Store user courses in localStorage if available
       if (data.courses && Array.isArray(data.courses)) {
@@ -65,16 +68,14 @@ export default function LogIn() {
       
       // Redirect based on user role
       setTimeout(() => {
-        // Check if server returned a userRole property, otherwise redirect to unitList as default
         if (data.userRole === "SUPER_ADMIN") {
           router.push('/dashboard');
         } else if (data.courses && data.courses.length > 0) {
-          // If user has courses, redirect to the unitList page with the first course ID
           router.push(`/unitList?courseId=${data.courses[0].id}`);
         } else {
           router.push('/unitList');
         }
-      }, 150);
+      }, 50);
       
     } catch (err) {
       setError(err.message);

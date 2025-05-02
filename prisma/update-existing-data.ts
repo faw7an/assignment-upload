@@ -22,34 +22,6 @@ async function updateExistingData() {
       console.log('No ADMIN users found to promote to SUPER_ADMIN.');
     }
 
-    // Step 2: Ensure all courses have an admin
-    const coursesWithoutAdmin = await prisma.course.findMany({
-      where: { courseAdminId: null }
-    });
-
-    if (coursesWithoutAdmin.length > 0) {
-      const superAdmin = await prisma.user.findFirst({
-        where: { role: 'SUPER_ADMIN' }
-      });
-      
-      const adminForCourses = superAdmin || adminUsers[0];
-      
-      if (adminForCourses) {
-        console.log(`Assigning ${adminForCourses.username} as admin for ${coursesWithoutAdmin.length} courses.`);
-        
-        for (const course of coursesWithoutAdmin) {
-          await prisma.course.update({
-            where: { id: course.id },
-            data: { courseAdminId: adminForCourses.id }
-          });
-        }
-      } else {
-        console.log('Warning: No admin user available to assign to courses.');
-      }
-    } else {
-      console.log('All courses have an admin assigned.');
-    }
-
     // Step 3: Find units without courseId and assign them based on CourseUnit relationships
     console.log('Looking for units that need a courseId assignment...');
     

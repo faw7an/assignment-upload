@@ -6,7 +6,8 @@ const createUnitSchema = z.object({
   code: z.string().min(1, 'Unit code required').max(20),
   name: z.string().min(1, 'Unit name required').max(100),
   description: z.string().optional().nullable(),
-  courseId: z.string().uuid('Invalid Course ID format'),
+  // More flexible courseId handling that accepts any string format
+  courseId: z.string().or(z.number().transform(n => String(n))),
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,23 +16,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const userId = req.headers['x-user-id'] as string;
   const userRole = req.headers['x-user-role'] as string;
+  
+  // Add debugging to see what's in the request
+  console.log('Creating unit - User ID:', userId, 'Role:', userRole);
+  console.log('Request body:', req.body);
+  
   if (!userId || !userRole) {
     return res.status(401).json({ message: 'Authentication context missing' });
   }
+  
   const validationResult = createUnitSchema.safeParse(req.body);
   if (!validationResult.success) {
+    console.error('Validation error:', validationResult.error);
     return res.status(400).json({ errors: validationResult.error.flatten().fieldErrors });
   }
+  
   const { code, name, description, courseId } = validationResult.data;
+  console.log('Validated data:', { code, name, description, courseId });
+  
   const course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) {
     return res.status(404).json({ message: 'Target course not found' });
   }
+
+  // Allow both SUPER_ADMIN and ADMIN roles to create units
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
-  const isCourseAdmin = userRole === 'ADMIN' && course.courseAdminId === userId;
-  if (!isSuperAdmin && !isCourseAdmin) {
-    return res.status(403).json({ message: 'Access Denied: Only Super Admins or the Course Admin can create units for this course.' });
+  const isAdmin = userRole === 'ADMIN';
+
+  if (!isSuperAdmin && !isAdmin) {
+    return res.status(403).json({ message: 'Access Denied: Only Admins and Super Admins can create units for courses.' });
   }
+
   const existingUnit = await prisma.unit.findUnique({ where: { code } });
   if (existingUnit) {
     return res.status(409).json({ message: 'Unit with this code already exists' });

@@ -1,7 +1,6 @@
-"use client";
 import { useRef, useState } from "react";
 
-export default function UploadPage() {
+export default function Uploader() {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -26,11 +25,11 @@ export default function UploadPage() {
 
   return (
     <div
-      className="flex items-center justify-center h-screen bg-gray-100"
+      className="flex items-center justify-center"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <div className="w-full max-w-lg bg-white p-6 rounded shadow-md">
+      <div className="w-full max-w-lg bg-white p-6 ">
         <h2 className="text-2xl font-bold mb-4 text-center">Upload File</h2>
         <div className="border-2 border-dashed border-gray-300 p-6 rounded flex flex-col items-center justify-center space-y-4">
           <p className="text-gray-600">Drag and drop your file here</p>

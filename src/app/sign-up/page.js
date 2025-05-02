@@ -300,7 +300,7 @@ export default function SignUp() {
 
               {loadingCourse ? (
                 <p className="text-gray-600">Loading courses...</p>
-              ) : (
+              ) : courses && courses.length > 0 ? (
                 courses.map((course) => (
                   <div
                     key={course.id}
@@ -323,6 +323,8 @@ export default function SignUp() {
                     </p>
                   </div>
                 ))
+              ) : (
+                <p className="text-gray-600">No courses available. Please contact an administrator.</p>
               )}
 
               <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">

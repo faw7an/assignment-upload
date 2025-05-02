@@ -53,24 +53,17 @@ export default async function handler(
     }
     
     // For regular students, only show units from enrolled courses
-    const isSystemAdmin = decoded.role === 'ADMIN';
+    const isSuperAdmin = decoded.role === 'SUPER_ADMIN';
     
-    if (!isSystemAdmin) {
-      // Get all courses where the user is enrolled or is the admin
+    if (!isSuperAdmin) {
+      // Get all courses where the user is enrolled
       const userCourses = await prisma.course.findMany({
         where: {
-          OR: [
-            {
-              courseAdminId: decoded.userId,
+          enrolledStudents: {
+            some: {
+              userId: decoded.userId,
             },
-            {
-              enrolledStudents: {
-                some: {
-                  userId: decoded.userId,
-                },
-              },
-            },
-          ],
+          },
         },
         select: {
           id: true,
@@ -94,7 +87,7 @@ export default async function handler(
       }
     }
     
-    // Fetch units with filter
+    // Fetch units with filter - removing courseAdmin from the include
     const units = await prisma.unit.findMany({
       where: whereClause,
       include: {
@@ -102,13 +95,7 @@ export default async function handler(
           select: {
             id: true,
             name: true,
-            code: true,
-            courseAdmin: {
-              select: {
-                id: true,
-                username: true
-              }
-            }
+            code: true
           }
         },
         _count: {

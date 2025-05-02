@@ -1,52 +1,71 @@
-import prisma from '@/lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { z } from 'zod';
+import jwt from 'jsonwebtoken';
 
-const createCourseSchema = z.object({
-  code: z.string().min(1, 'Course code is required').max(20, 'Code too long'),
-  name: z.string().min(1, 'Course name is required').max(100, 'Name too long'),
-  description: z.string().optional().nullable(),
-});
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET;
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const userId = req.headers['x-user-id'] as string;
-  const userRole = req.headers['x-user-role'] as string;
+  // Extract token from Authorization header
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(' ')[1];
 
-  console.log('User ID:', userId);
-  console.log('User Role:', userRole);
-  if (!userId || !userRole) {
-    return res.status(401).json({ message: 'Authentication context missing' });
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication required' });
   }
-  if (userRole !== 'SUPER_ADMIN') {
-    return res.status(403).json({ message: 'Access Denied: Only Super Admins can create courses.' });
-  }
-
-  const validationResult = createCourseSchema.safeParse(req.body);
-  if (!validationResult.success) {
-    return res.status(400).json({ errors: validationResult.error.flatten().fieldErrors });
-  }
-  const { code, name, description } = validationResult.data;
 
   try {
-    const existingCourse = await prisma.course.findUnique({ where: { code } });
+    // Verify token
+    const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
+
+    // Check if user is SUPER_ADMIN
+    if (decoded.role !== 'SUPER_ADMIN') {
+      return res.status(403).json({ message: 'Access Denied: Only Super Admins can create courses.' });
+    }
+
+    const { code, name, description } = req.body;
+
+    // Validate input
+    if (!code || !name) {
+      return res.status(400).json({ message: 'Course code and name are required' });
+    }
+
+    // Check if course with this code already exists
+    const existingCourse = await prisma.course.findUnique({
+      where: { code },
+    });
+
     if (existingCourse) {
       return res.status(409).json({ message: 'Course with this code already exists' });
     }
+
+    // Create the course without setting a course admin
     const course = await prisma.course.create({
       data: {
         code,
         name,
         description: description || null,
-        courseAdminId: userId
       },
     });
-    return res.status(201).json({ message: 'Course created successfully', course });
+
+    return res.status(201).json({
+      message: 'Course created successfully',
+      course,
+    });
   } catch (error) {
     console.error('Create Course Error:', error);
+    if ((error as Error).name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
     return res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    await prisma.$disconnect();
   }
 }
