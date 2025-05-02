@@ -10,6 +10,7 @@ import CreateAssignment from "../components/createAssignment/CreateAssignment";
 import addIcon from "../../../public/assets/icons/plus-solid (1).svg";
 import Loading from "../components/loading/Loading";
 import axios from "axios";
+import SearchBar from "../components/searchBar/SearchBar";
 
 export default function AssignmentListPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -99,6 +100,7 @@ export default function AssignmentListPage() {
         <Nav />
       </header>
       <main className="flex-grow p-6">
+        <SearchBar />
         {loading ? (
           <Loading />
         ) : deployed.length > 0 ? (

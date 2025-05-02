@@ -6,6 +6,10 @@ import Nav from "../components/nav/Nav";
 import Profile from "../components/profile/Profile";
 import UnitCard from "../components/unitCard/UnitCard";
 import CreateUnit from "../components/createUnit/CreateUnit";
+import SearchBar from "../components/searchBar/SearchBar";
+
+
+
 
 function UnitList() {
   const [isCreateUnitOpen, setIsCreateUnitOpen] = useState(false);
@@ -68,6 +72,7 @@ function UnitList() {
         <Nav />
       </header>
       <main className="flex-grow p-4 md:p-6 container mx-auto">
+        <SearchBar />
         <div className="w-full max-w-[1400px] mx-auto">
           {units.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
