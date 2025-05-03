@@ -2,11 +2,12 @@ type: http_request
 model: http_request
 id: rq_9HcVHmwMn3
 createdAt: 2025-04-28T22:32:39.606722587
-updatedAt: 2025-04-28T22:32:39.606725035
+updatedAt: 2025-05-03T11:11:45.120240793
 workspaceId: wk_MkTb2yyL29
 folderId: null
-authentication: {}
-authenticationType: null
+authentication:
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiMWQ3Nzc0OC0zMGQ5LTQ3YjQtOTEwMS05M2QxMmM1ZTNlYTQiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDYyNzAxNTEsImV4cCI6MTc0Njk5MDE1MX0.2HgV5Kzf2ZzhCWzKTtdvNsBJS_VuwU-LLmpGiulgW7E
+authenticationType: bearer
 body: {}
 bodyType: null
 description: ''

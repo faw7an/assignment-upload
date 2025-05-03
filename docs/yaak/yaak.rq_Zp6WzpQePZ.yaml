@@ -2,20 +2,26 @@ type: http_request
 model: http_request
 id: rq_Zp6WzpQePZ
 createdAt: 2025-04-28T22:32:39.802275530
-updatedAt: 2025-04-28T22:32:39.802278277
+updatedAt: 2025-05-03T11:12:44.916407653
 workspaceId: wk_MkTb2yyL29
 folderId: null
-authentication: {}
-authenticationType: null
+authentication:
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiMWQ3Nzc0OC0zMGQ5LTQ3YjQtOTEwMS05M2QxMmM1ZTNlYTQiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDYyNzAxNTEsImV4cCI6MTc0Njk5MDE1MX0.2HgV5Kzf2ZzhCWzKTtdvNsBJS_VuwU-LLmpGiulgW7E
+authenticationType: bearer
 body:
   form:
   - enabled: true
+    id: KFjHU9UfEf
     name: assignmentId
-    value: '2'
+    value: '5'
   - enabled: true
+    file: /home/fawzan/Documents/assignment info.odt
+    id: EXhAhGCgJq
     name: file
-    value:
-    - /home/bethropolis/Documents/assignment.pdf
+  - enabled: true
+    id: jGAfXNr5C4
+    name: ''
+    value: ''
 bodyType: multipart/form-data
 description: ''
 headers:

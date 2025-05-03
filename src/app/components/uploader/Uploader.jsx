@@ -30,7 +30,7 @@ export default function Uploader() {
       onDragOver={handleDragOver}
     >
       <div className="w-full max-w-lg bg-white p-6 ">
-        <h2 className="text-2xl font-bold mb-4 text-center">Upload File</h2>
+        <h2 className="text-2xl text-gray-500 font-bold mb-4 text-center">Upload File</h2>
         <div className="border-2 border-dashed border-gray-300 p-6 rounded flex flex-col items-center justify-center space-y-4">
           <p className="text-gray-600">Drag and drop your file here</p>
           <p className="text-gray-500">or</p>
