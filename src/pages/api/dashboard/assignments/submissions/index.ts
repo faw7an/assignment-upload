@@ -50,9 +50,14 @@ export default async function handler(
         });
       });
       
-      const assignmentId = parseInt(fields.assignmentId as string);
+      // Ensure assignmentId is a string, not an array
+      let assignmentId = fields.assignmentId as string | string[];
+      // If it's an array, take the first value
+      if (Array.isArray(assignmentId)) {
+        assignmentId = assignmentId[0];
+      }
       
-      if (isNaN(assignmentId)) {
+      if (!assignmentId) {
         return res.status(400).json({ message: 'Invalid assignment ID' });
       }
       
@@ -124,11 +129,22 @@ export default async function handler(
         originalFilename: actualFile.originalFilename
       });
       
+      // Get user information to include username
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { username: true }
+      });
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
       // Create submission record
       const submission = await prisma.submission.create({
         data: {
           assignmentId,
           studentId: decoded.userId,
+          username: user.username,
           fileName: actualFile.originalFilename || 'unnamed-file',
           filePath: path.relative(process.cwd(), actualFile.filepath),
           fileType: actualFile.mimetype || null,
@@ -158,15 +174,22 @@ export default async function handler(
       const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string; role: string };
       
       // Extract query parameters for filtering
-      const { assignmentId } = req.query;
+      let { assignmentId } = req.query;
+
+      
       
       if (!assignmentId) {
         return res.status(400).json({ message: 'Assignment ID is required' });
       }
       
+      // Handle if assignmentId is an array
+      if (Array.isArray(assignmentId)) {
+        assignmentId = assignmentId[0];
+      }
+      
       // Get assignment with its course information
       const assignment = await prisma.assignment.findUnique({
-        where: { id: parseInt(assignmentId as string) },
+        where: { id: assignmentId },
         include: {
           unit: {
             include: {
@@ -187,7 +210,7 @@ export default async function handler(
       // For regular students, only allow viewing their own submissions
       // For course admins and system admins, allow viewing all submissions
       const whereClause: any = {
-        assignmentId: parseInt(assignmentId as string)
+        assignmentId: assignmentId as string
       };
       
       if (!isSystemAdmin && !isCourseAdmin) {

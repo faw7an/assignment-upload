@@ -65,7 +65,7 @@ model Unit {
 
 
 model Assignment {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(uuid())
   title       String
   description String?
   dueDate     DateTime? 
@@ -83,7 +83,8 @@ model Assignment {
 
 
 model Submission {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
+  username  String   // Added username field
   submittedAt DateTime @default(now())
   filePath  String
   fileName  String
@@ -99,10 +100,11 @@ model Submission {
 
   // Relation: Each submission is for exactly one assignment
   assignment   Assignment @relation(fields: [assignmentId], references: [id])
-  assignmentId Int
+  assignmentId String     // Changed to String to match Assignment.id
 
   @@index([studentId])
   @@index([assignmentId])
+  @@index([username])
 }
 
 // New Course model

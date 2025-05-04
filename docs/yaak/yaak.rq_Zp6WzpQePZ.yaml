@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_Zp6WzpQePZ
 createdAt: 2025-04-28T22:32:39.802275530
-updatedAt: 2025-05-03T11:12:44.916407653
+updatedAt: 2025-05-03T13:30:48.965275508
 workspaceId: wk_MkTb2yyL29
 folderId: null
 authentication:
@@ -13,13 +13,13 @@ body:
   - enabled: true
     id: KFjHU9UfEf
     name: assignmentId
-    value: '5'
+    value: 45fa0ab2-8589-4b48-abc0-6534cbeec04b
   - enabled: true
     file: /home/fawzan/Documents/assignment info.odt
     id: EXhAhGCgJq
     name: file
   - enabled: true
-    id: jGAfXNr5C4
+    id: ceqmWePC38
     name: ''
     value: ''
 bodyType: multipart/form-data
