@@ -5,11 +5,11 @@ import { z } from 'zod';
 const createAssignmentSchema = z.object({
   title: z.string().min(1, 'Title required').max(150),
   description: z.string().optional().nullable(),
-  unitId: z.coerce.number().int('Unit ID must be an integer').positive('Invalid Unit ID'),
+  unitId: z.string().uuid('Unit ID must be a valid UUID'),
   dueDate: z.coerce.date().optional().nullable(),
 });
 const getAssignmentsQuerySchema = z.object({
-  unitId: z.coerce.number().int().positive().optional(),
+  unitId: z.string().uuid().optional(),
   courseId: z.string().uuid().optional(),
   title: z.string().optional(),
   description: z.string().optional(),

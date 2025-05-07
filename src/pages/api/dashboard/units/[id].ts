@@ -19,9 +19,9 @@ export default async function handler(
 
   // Extract unit ID from URL
   const { id } = req.query;
-  const unitId = parseInt(id as string);
+  const unitId = id as string;
 
-  if (isNaN(unitId)) {
+  if (!unitId) {
     return res.status(400).json({ message: 'Invalid unit ID' });
   }
 

@@ -44,21 +44,20 @@ export default async function handler(
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
-    // Check if user has admin privileges (either ADMIN or SUPER_ADMIN role)
-    const isSuperAdmin = decoded.role === 'SUPER_ADMIN';
-    const isAdmin = decoded.role === 'ADMIN';
-    const hasAdminPrivileges = isSuperAdmin || isAdmin;
+    // Check if user is system admin or course admin
+    const isSystemAdmin = decoded.role === 'ADMIN';
+    const isCourseAdmin = assignment.unit.course && assignment.unit.course.courseAdminId === decoded.userId;
 
     // GET: Fetch assignment details
     if (req.method === 'GET') {
       return res.status(200).json({ assignment });
     }
     
-    // PUT: Update assignment (admin or super admin only)
+    // PUT: Update assignment (admin or course admin only)
     else if (req.method === 'PUT') {
-      if (!hasAdminPrivileges) {
+      if (!isSystemAdmin && !isCourseAdmin) {
         return res.status(403).json({ 
-          message: 'Access denied. Only admins or super admins can update assignments.' 
+          message: 'Access denied. Only course admins or system admins can update assignments.' 
         });
       }
 
@@ -80,11 +79,11 @@ export default async function handler(
       });
     }
     
-    // DELETE: Remove assignment (admin or super admin only)
+    // DELETE: Remove assignment (admin or course admin only)
     else if (req.method === 'DELETE') {
-      if (!hasAdminPrivileges) {
+      if (!isSystemAdmin && !isCourseAdmin) {
         return res.status(403).json({ 
-          message: 'Access denied. Only admins or super admins can delete assignments.' 
+          message: 'Access denied. Only course admins or system admins can delete assignments.' 
         });
       }
       

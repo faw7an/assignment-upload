@@ -46,7 +46,7 @@ model User {
 
 
 model Unit {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(uuid())
   code        String   @unique 
   name        String   
   description String?
@@ -73,7 +73,7 @@ model Assignment {
   updatedAt   DateTime @updatedAt
 
   unit   Unit @relation(fields: [unitId], references: [id])
-  unitId Int
+  unitId String
 
   // Relation: An assignment can have many submissions
   submissions Submission[]
