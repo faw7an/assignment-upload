@@ -18,9 +18,9 @@ export default async function handler(
 
   // Extract assignment ID from URL
   const { id } = req.query;
-  const assignmentId = parseInt(id as string);
+  const assignmentId = id as string;
 
-  if (isNaN(assignmentId)) {
+  if (assignmentId) {
     return res.status(400).json({ message: 'Invalid assignment ID' });
   }
 
@@ -44,20 +44,19 @@ export default async function handler(
       return res.status(404).json({ message: 'Assignment not found' });
     }
 
-    // Check if user is system admin or course admin
-    const isSystemAdmin = decoded.role === 'ADMIN';
-    const isCourseAdmin = assignment.unit.course && assignment.unit.course.courseAdminId === decoded.userId;
+    // Check if user is system admin or super admin
+    const hasAdminAccess = decoded.role === 'ADMIN' || decoded.role === 'SUPER_ADMIN';
 
     // GET: Fetch assignment details
     if (req.method === 'GET') {
       return res.status(200).json({ assignment });
     }
     
-    // PUT: Update assignment (admin or course admin only)
+    // PUT: Update assignment (admin only)
     else if (req.method === 'PUT') {
-      if (!isSystemAdmin && !isCourseAdmin) {
+      if (!hasAdminAccess) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can update assignments.' 
+          message: 'Access denied. Only system admins can update assignments.' 
         });
       }
 
@@ -79,11 +78,11 @@ export default async function handler(
       });
     }
     
-    // DELETE: Remove assignment (admin or course admin only)
+    // DELETE: Remove assignment (admin only)
     else if (req.method === 'DELETE') {
-      if (!isSystemAdmin && !isCourseAdmin) {
+      if (!hasAdminAccess) {
         return res.status(403).json({ 
-          message: 'Access denied. Only course admins or system admins can delete assignments.' 
+          message: 'Access denied. Only system admins can delete assignments.' 
         });
       }
       

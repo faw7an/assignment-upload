@@ -31,7 +31,7 @@ export default async function handler(
 
     // Check if unit exists
     const unit = await prisma.unit.findUnique({
-      where: { id: unitId },
+      where: { id: unitId},
       include: {
         course: true,
         assignments: true
@@ -98,15 +98,15 @@ export default async function handler(
       }
       
       // Check if unit has assignments
-      if (unit.assignments && unit.assignments.length > 0) {
-        return res.status(409).json({ 
-          message: 'Cannot delete unit with existing assignments. Delete the assignments first.' 
-        });
-      }
+      // if (unit.assignments && unit.assignments.length > 0) {
+      //   return res.status(409).json({ 
+      //     message: 'Cannot delete unit with existing assignments. Delete the assignments first.' 
+      //   });
+      // }
       
       // Delete the unit
       await prisma.unit.delete({
-        where: { id: unitId },
+        where: { id:  unitId },
       });
       
       return res.status(200).json({

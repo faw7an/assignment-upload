@@ -1,11 +1,11 @@
-import prisma from '@/lib/prisma';
-import { NextApiRequest, NextApiResponse } from 'next';
-import { z } from 'zod';
+import prisma from "@/lib/prisma";
+import { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 const createAssignmentSchema = z.object({
-  title: z.string().min(1, 'Title required').max(150),
+  title: z.string().min(1, "Title required").max(150),
   description: z.string().optional().nullable(),
-  unitId: z.string().uuid('Unit ID must be a valid UUID'),
+  unitId: z.string().uuid("Unit ID must be a valid UUID"),
   dueDate: z.coerce.date().optional().nullable(),
 });
 const getAssignmentsQuerySchema = z.object({
@@ -15,33 +15,48 @@ const getAssignmentsQuerySchema = z.object({
   description: z.string().optional(),
   dueBefore: z.coerce.date().optional(),
   dueAfter: z.coerce.date().optional(),
-  status: z.enum(['upcoming', 'past']).optional(),
+  status: z.enum(["upcoming", "past"]).optional(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const userId = req.headers['x-user-id'] as string;
-  const userRole = req.headers['x-user-role'] as string;
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const userId = req.headers["x-user-id"] as string;
+  const userRole = req.headers["x-user-role"] as string;
   if (!userId || !userRole) {
-    return res.status(401).json({ message: 'Authentication context missing' });
+    return res.status(401).json({ message: "Authentication context missing" });
   }
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     const validationResult = createAssignmentSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return res.status(400).json({ errors: validationResult.error.flatten().fieldErrors });
+      return res
+        .status(400)
+        .json({ errors: validationResult.error.flatten().fieldErrors });
     }
     const { title, description, unitId, dueDate } = validationResult.data;
-    const unit = await prisma.unit.findUnique({ where: { id: unitId }, include: { course: true } });
+    const unit = await prisma.unit.findUnique({
+      where: { id: unitId },
+      include: { course: true },
+    });
     if (!unit || !unit.course) {
-      return res.status(404).json({ message: 'Target unit or its associated course not found' });
+      return res
+        .status(404)
+        .json({ message: "Target unit or its associated course not found" });
     }
 
     // Allow both ADMIN and SUPER_ADMIN to create assignments
-    const isSuperAdmin = userRole === 'SUPER_ADMIN';
-    const isAdmin = userRole === 'ADMIN';
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
+    const isAdmin = userRole === "ADMIN";
     const hasAdminPrivileges = isSuperAdmin || isAdmin;
 
     if (!hasAdminPrivileges) {
-      return res.status(403).json({ message: 'Access Denied: Only Admins or Super Admins can create assignments.' });
+      return res
+        .status(403)
+        .json({
+          message:
+            "Access Denied: Only Admins or Super Admins can create assignments.",
+        });
     }
 
     try {
@@ -53,15 +68,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           dueDate,
         },
       });
-      return res.status(201).json({ message: 'Assignment created successfully', assignment });
+      return res
+        .status(201)
+        .json({ message: "Assignment created successfully", assignment });
     } catch (error) {
-      console.error('Create Assignment Error:', error);
-      return res.status(500).json({ message: 'Internal server error' });
+      console.error("Create Assignment Error:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
-  } else if (req.method === 'GET') {
+  } else if (req.method === "GET") {
     const queryResult = getAssignmentsQuerySchema.safeParse(req.query);
     if (!queryResult.success) {
-      return res.status(400).json({ errors: queryResult.error.flatten().fieldErrors });
+      return res
+        .status(400)
+        .json({ errors: queryResult.error.flatten().fieldErrors });
     }
     const {
       unitId,
@@ -108,12 +127,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (status) {
       const now = new Date();
 
-      if (status === 'upcoming') {
+      if (status === "upcoming") {
         whereClause.dueDate = {
           ...(whereClause.dueDate || {}),
           gt: now,
         };
-      } else if (status === 'past') {
+      } else if (status === "past") {
         whereClause.dueDate = {
           ...(whereClause.dueDate || {}),
           lt: now,
@@ -121,8 +140,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    const isSuperAdmin = userRole === 'SUPER_ADMIN';
-    const isAdmin = userRole === 'ADMIN';
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
+    const isAdmin = userRole === "ADMIN";
 
     if (!isSuperAdmin && !isAdmin) {
       const userCourses = await prisma.course.findMany({
@@ -143,7 +162,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (courseId) {
         if (!userCourseIds.includes(courseId)) {
           return res.status(403).json({
-            message: 'You do not have access to this course.',
+            message: "You do not have access to this course.",
           });
         }
 
@@ -161,7 +180,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (unitId) {
           if (!unitIds.includes(unitId)) {
             return res.status(403).json({
-              message: 'You do not have access to this unit.',
+              message: "You do not have access to this unit.",
             });
           }
         } else {
@@ -186,7 +205,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (unitId) {
           if (!accessibleUnitIds.includes(unitId)) {
             return res.status(403).json({
-              message: 'You do not have access to this unit.',
+              message: "You do not have access to this unit.",
             });
           }
         } else {
@@ -220,7 +239,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (unitId) {
         if (!adminUnitIds.includes(unitId)) {
           return res.status(403).json({
-            message: 'You do not have access to this unit.',
+            message: "You do not have access to this unit.",
           });
         }
       } else {
@@ -254,12 +273,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
     return res.status(200).json({ assignments });
   } else {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return res.status(405).json({ message: "Method not allowed" });
   }
 }

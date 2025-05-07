@@ -26,22 +26,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { id } = queryResult.data;
   const course = await prisma.course.findUnique({
     where: { id },
-    include: { courseAdmin: true },
   });
   if (!course) {
     return res.status(404).json({ message: 'Course not found' });
   }
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
-  const isCourseAdmin = userRole === 'ADMIN' && course.courseAdminId === userId;
+  
   if (req.method === 'GET') {
-    if (isSuperAdmin || isCourseAdmin) {
-      // ...existing code for full course info...
-      // ...existing code...
-    }
     return res.status(200).json({ course });
   } else if (req.method === 'PUT') {
-    if (!isSuperAdmin && !isCourseAdmin) {
-      return res.status(403).json({ message: 'Access Denied: Only Super Admins or the Course Admin can update this course.' });
+    if (!isSuperAdmin) {
+      return res.status(403).json({ message: 'Access Denied: Only Super Admins can update this course.' });
     }
     const validationResult = updateCourseSchema.safeParse(req.body);
     if (!validationResult.success) {
@@ -68,8 +63,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ message: 'Internal server error' });
     }
   } else if (req.method === 'DELETE') {
-    if (!isSuperAdmin && !isCourseAdmin) {
-      return res.status(403).json({ message: 'Access Denied: Only Super Admins or the Course Admin can delete this course.' });
+    if (!isSuperAdmin) {
+      return res.status(403).json({ message: 'Access Denied: Only Super Admins can delete this course.' });
     }
     try {
       await prisma.course.delete({ where: { id } });
