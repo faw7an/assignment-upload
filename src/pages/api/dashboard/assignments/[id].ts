@@ -20,7 +20,7 @@ export default async function handler(
   const { id } = req.query;
   const assignmentId = id as string;
 
-  if (assignmentId) {
+  if (!assignmentId) {
     return res.status(400).json({ message: 'Invalid assignment ID' });
   }
 
