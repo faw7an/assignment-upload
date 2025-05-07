@@ -102,6 +102,7 @@ export default function SignUp() {
         // Store token in localStorage
         if (data.token) {
           localStorage.setItem("authToken", data.token);
+          setToken(data.token); 
         }
       } catch (err) {
         setError(
