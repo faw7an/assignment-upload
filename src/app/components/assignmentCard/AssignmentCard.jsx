@@ -43,11 +43,16 @@ function AssignmentCard({ id, unit, title, description, dueDate, onAssignmentDel
         <p className="text-sm text-gray-500">Due: {new Date(dueDate).toLocaleDateString()}</p>
       )}
       <div className="flex mt-3">
-        <Link href={"/monitor"}>
+        {/* <Link href={"/monitor"}>
           <button className="rounded bg-blue-600 text-white px-3 py-2 mr-2">
             Monitor submissions
           </button>
-        </Link>
+        </Link> */}
+        <Link href={`/submission?id=${id}`}>
+        <button className="rounded bg-blue-600 text-white px-3 py-2 mr-2">
+            Upload Assignment
+          </button>
+          </Link>
         <button 
           className="rounded bg-red-600 text-white px-3 py-2 w-28"
           onClick={deleteAssignment}>

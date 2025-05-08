@@ -2,11 +2,12 @@ type: http_request
 model: http_request
 id: rq_LG5z8tJnxR
 createdAt: 2025-04-28T22:32:39.725315838
-updatedAt: 2025-04-28T22:32:39.725316978
+updatedAt: 2025-05-07T22:28:36.606825880
 workspaceId: wk_MkTb2yyL29
 folderId: null
-authentication: {}
-authenticationType: null
+authentication:
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM3MjlhOC1lMDk3LTRlZjItODZiOS1iZTQ1MDQzZWNkNGQiLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJpYXQiOjE3NDY2NTQ2MjgsImV4cCI6MTc0NzM3NDYyOH0.3aXvsNYSPebY0GeDnwypEa04tNnECFgXHeVld4s8qxk
+authenticationType: bearer
 body: {}
 bodyType: null
 description: ''
@@ -18,5 +19,5 @@ headers:
 method: GET
 name: get assignment
 sortPriority: 0.0
-url: http://localhost:3000/api/dashboard/assignments/1
+url: http://localhost:3000/api/dashboard/assignments/6174b807-bbca-41f5-94a2-459adaff8bcd
 urlParameters: []

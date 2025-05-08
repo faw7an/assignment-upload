@@ -2,11 +2,11 @@ type: http_request
 model: http_request
 id: rq_9HcVHmwMn3
 createdAt: 2025-04-28T22:32:39.606722587
-updatedAt: 2025-05-03T13:30:43.823281998
+updatedAt: 2025-05-07T22:27:38.035171905
 workspaceId: wk_MkTb2yyL29
 folderId: null
 authentication:
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiMWQ3Nzc0OC0zMGQ5LTQ3YjQtOTEwMS05M2QxMmM1ZTNlYTQiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NDYyNzAxNTEsImV4cCI6MTc0Njk5MDE1MX0.2HgV5Kzf2ZzhCWzKTtdvNsBJS_VuwU-LLmpGiulgW7E
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjM3MjlhOC1lMDk3LTRlZjItODZiOS1iZTQ1MDQzZWNkNGQiLCJyb2xlIjoiU1VQRVJfQURNSU4iLCJpYXQiOjE3NDY2NTQ2MjgsImV4cCI6MTc0NzM3NDYyOH0.3aXvsNYSPebY0GeDnwypEa04tNnECFgXHeVld4s8qxk
 authenticationType: bearer
 body: {}
 bodyType: null

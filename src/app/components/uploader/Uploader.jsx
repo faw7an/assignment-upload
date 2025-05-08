@@ -1,22 +1,33 @@
 import { useRef, useState } from "react";
 
-export default function Uploader() {
+export default function Uploader({onFileChange,onSubmit}) {
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    const selectedFile = event.target.files[0];
+    setFile(selectedFile);
+    if (onFileChange) {
+      onFileChange(selectedFile);
+    }
   };
 
   const handleDrop = (event) => {
     event.preventDefault();
-    setFile(event.dataTransfer.files[0]);
+    const droppedFile = event.dataTransfer.files[0];
+    setFile(droppedFile)
+    if (onFileChange) {
+      onFileChange(droppedFile);
+    }
   };
 
   const removeUpload = (event) => {
     setFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+    if (onFileChange) {
+      onFileChange(null);
     }
   };
   const handleDragOver = (event) => {
@@ -61,7 +72,10 @@ export default function Uploader() {
           >
             Remove upload
           </button>
-          <button className="px-4 py-2 bg-blue-500 rounded m-2">
+          <button className="px-4 py-2 bg-blue-500 rounded m-2"
+          onClick={onSubmit}
+          disabled={!file}
+          >
             Submit assignment
           </button>
         </div>
